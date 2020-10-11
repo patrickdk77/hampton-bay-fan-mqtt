@@ -1,4 +1,4 @@
-# Hampton Bay Fan MQTT
+# Hampton Bay/Fanimation/DawnSun Fan MQTT
 
 ## Features
 Added support for Hampton Bay A25-TX028 rf remotes made by dawnsun
