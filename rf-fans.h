@@ -45,6 +45,8 @@
 
 #define NO_RF_REPEAT_TIME 300
 
+#define SLEEP_DELAY 50
+
 struct fan
 {
   bool powerState;

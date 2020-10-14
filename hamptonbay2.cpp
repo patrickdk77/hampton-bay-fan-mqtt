@@ -8,6 +8,8 @@
 #define SUBSCRIBE_TOPIC_CMND_SPEED "cmnd/" BASE_TOPIC "/+/speed"     
 #define SUBSCRIBE_TOPIC_CMND_LIGHT "cmnd/" BASE_TOPIC "/+/light"  
 
+#define SUBSCRIBE_TOPIC_STAT_SETUP "stat/" BASE_TOPIC "/#"
+
 #define TX_FREQ 304.015 // a25-tx028 Hampton
             
 // RC-switch settings
@@ -46,7 +48,7 @@ static void transmitState(int fanId, int code) {
   //   Where a is the inversed/reversed dip setting, 
   //     ccc is the command (111 Power, 101 Fan, 100 Light, 011 Dim/Temp)
   //     dd is the data value
-  int rfCode = 0xfc6000 | dipToRfIds[fanId] << 8 | (code&0xff);
+  int rfCode = 0xfc6000 | (~fanId &0x0f) << 8 | (code&0xff);
   
   mySwitch.send(rfCode, 24);      // send 24 bit code
   mySwitch.disableTransmit();   // set Transmit off
@@ -158,6 +160,58 @@ void hamptonbay2MQTT(char* topic, byte* payload, unsigned int length) {
       return;
     }
   }
+  if(strncmp(topic, "stat/",5) == 0) {
+    char payloadChar[length + 1];
+    sprintf(payloadChar, "%s", payload);
+    payloadChar[length] = '\0';
+  
+    // Get ID after the base topic + a slash
+    char id[5];
+    memcpy(id, &topic[sizeof(BASE_TOPIC)+5], 4);
+    id[4] = '\0';
+    if(strspn(id, idchars)) {
+      uint8_t idint = strtol(id, (char**) NULL, 2);
+      char *attr;
+      // Split by slash after ID in topic to get attribute and action
+    
+      attr = strtok(topic+sizeof(BASE_TOPIC) + 5 + 5, "/");
+          // Convert payload to lowercase
+      for(int i=0; payloadChar[i]; i++) {
+        payloadChar[i] = tolower(payloadChar[i]);
+      }
+
+      if(strcmp(attr,"fan") ==0) {
+        if(strcmp(payloadChar,"on") == 0) {
+          fans[idint].fanState = true;
+        } else {
+          fans[idint].fanState = false;
+        }
+      } else if(strcmp(attr,"speed") ==0) {
+        if(strcmp(payloadChar,"high") ==0) {
+          fans[idint].fanSpeed = FAN_HI;
+        } else if(strcmp(payloadChar,"medium") ==0) {
+          fans[idint].fanSpeed = FAN_MED;
+        } else if(strcmp(payloadChar,"low") ==0) {
+          fans[idint].fanSpeed = FAN_LOW;
+        }
+      } else if(strcmp(attr,"light") ==0) {
+        if(strcmp(payloadChar,"on") == 0) {
+          fans[idint].lightState = true;
+        } else {
+          fans[idint].lightState = false;
+        }
+      } else if(strcmp(attr,"power") ==0) {
+        if(strcmp(payloadChar,"on") == 0) {
+          fans[idint].powerState = true;
+        } else {
+          fans[idint].powerState = false;
+        }
+      }
+    } else {
+      // Invalid ID
+      return;
+    }
+  }
 }
 
 void hamptonbay2RF(int long value, int prot, int bits) {
@@ -170,11 +224,9 @@ void hamptonbay2RF(int long value, int prot, int bits) {
       }
       lastvalue=value;
       lasttime=t;
-      int id = (value >> 8)&0x0f;
+      int dipId = (~value >> 8)&0x0f;
       // Got a correct id in the correct protocol
-      if(id < 16) {
-        // Convert to dip id
-        int dipId = dipToRfIds[id];
+      if(dipId < 16) {
         // Blank out id in message to get light state
         switch(value&0xff) {
           case 0x7e: // PowerOn
@@ -214,11 +266,12 @@ void hamptonbay2RF(int long value, int prot, int bits) {
     }
 }
 
-void hamptonbay2MQTTSub() {
+void hamptonbay2MQTTSub(boolean setup) {
   client.subscribe(SUBSCRIBE_TOPIC_CMND_POWER);
   client.subscribe(SUBSCRIBE_TOPIC_CMND_FAN);  
   client.subscribe(SUBSCRIBE_TOPIC_CMND_SPEED);
   client.subscribe(SUBSCRIBE_TOPIC_CMND_LIGHT);
+  if(setup) client.subscribe(SUBSCRIBE_TOPIC_STAT_SETUP);
 }
 
 void hamptonbay2Setup() {
@@ -232,3 +285,8 @@ void hamptonbay2Setup() {
     fans[i].fanSpeed = FAN_LOW;
   }
 }
+   
+void hamptonbay2SetupEnd() {
+  client.unsubscribe(SUBSCRIBE_TOPIC_STAT_SETUP);
+}
+   

@@ -8,6 +8,8 @@
 #define SUBSCRIBE_TOPIC_CMND_SPEED "cmnd/" BASE_TOPIC "/+/speed"     
 #define SUBSCRIBE_TOPIC_CMND_LIGHT "cmnd/" BASE_TOPIC "/+/light"  
 
+#define SUBSCRIBE_TOPIC_STAT_SETUP "stat/" BASE_TOPIC "/#"
+
 #define TX_FREQ 303.870 // Fanimation 
             
 // RC-switch settings
@@ -47,7 +49,7 @@ static void transmitState(int fanId, int code) {
   //     cccccc is the command
   //     d is safe to use fade for the light
   
-  int rfCode = 0x0000 | (!(fans[fanId].fade) << 6) | dipToRfIds[fanId] << 7 | (code&0x3f);
+  int rfCode = 0x0000 | (!(fans[fanId].fade) << 6) | (~fanId & 0x0f) << 7 | (code&0x3f);
   
   mySwitch.send(rfCode, 12);      // send 12 bit code
   mySwitch.disableTransmit();   // set Transmit off
@@ -172,6 +174,70 @@ void fanimationMQTT(char* topic, byte* payload, unsigned int length) {
       return;
     }
   }
+  if(strncmp(topic, "stat/",5) == 0) {
+    char payloadChar[length + 1];
+    sprintf(payloadChar, "%s", payload);
+    payloadChar[length] = '\0';
+  
+    // Get ID after the base topic + a slash
+    char id[5];
+    memcpy(id, &topic[sizeof(BASE_TOPIC)+5], 4);
+    id[4] = '\0';
+    if(strspn(id, idchars)) {
+      uint8_t idint = strtol(id, (char**) NULL, 2);
+      char *attr;
+      // Split by slash after ID in topic to get attribute and action
+    
+      attr = strtok(topic+sizeof(BASE_TOPIC) + 5 + 5, "/");
+          // Convert payload to lowercase
+      for(int i=0; payloadChar[i]; i++) {
+        payloadChar[i] = tolower(payloadChar[i]);
+      }
+
+      if(strcmp(attr,"fan") ==0) {
+        if(strcmp(payloadChar,"on") == 0) {
+          fans[idint].fanState = true;
+        } else {
+          fans[idint].fanState = false;
+        }
+      } else if(strcmp(attr,"speed") ==0) {
+        if(strcmp(payloadChar,"high") ==0) {
+          fans[idint].fanSpeed = FAN_HI;
+        } else if(strcmp(payloadChar,"medium") ==0) {
+          fans[idint].fanSpeed = FAN_MED;
+        } else if(strcmp(payloadChar,"low") ==0) {
+          fans[idint].fanSpeed = FAN_LOW;
+        } else if(strcmp(payloadChar,"i") ==0) {
+          fans[idint].fanSpeed = FAN_I;
+        } else if(strcmp(payloadChar,"ii") ==0) {
+          fans[idint].fanSpeed = FAN_II;
+        } else if(strcmp(payloadChar,"iii") ==0) {
+          fans[idint].fanSpeed = FAN_III;
+        } else if(strcmp(payloadChar,"iv") ==0) {
+          fans[idint].fanSpeed = FAN_IV;
+        } else if(strcmp(payloadChar,"v") ==0) {
+          fans[idint].fanSpeed = FAN_V;
+        } else if(strcmp(payloadChar,"vi") ==0) {
+          fans[idint].fanSpeed = FAN_VI;
+        }
+      } else if(strcmp(attr,"light") ==0) {
+        if(strcmp(payloadChar,"on") == 0) {
+          fans[idint].lightState = true;
+        } else {
+          fans[idint].lightState = false;
+        }
+      } else if(strcmp(attr,"direction") ==0) {
+        if(strcmp(payloadChar,"up") == 0) {
+          fans[idint].directionState = true;
+        } else {
+          fans[idint].directionState = false;
+        }
+      }
+    } else {
+      // Invalid ID
+      return;
+    }
+  }
 }
 
 void fanimationRF(int long value, int prot, int bits) {
@@ -184,11 +250,10 @@ void fanimationRF(int long value, int prot, int bits) {
       }
       lastvalue=value;
       lasttime=t;
-      int id = (value >> 7)&0x0f;
+      int dipId = (~value >> 7)&0x0f;
       // Got a correct id in the correct protocol
-      if(id < 16) {
+      if(dipId < 16) {
         // Convert to dip id
-        int dipId = dipToRfIds[id];
         if((value&0x40) == 0x40)
           fans[dipId].fade=false;
         else
@@ -239,11 +304,13 @@ void fanimationRF(int long value, int prot, int bits) {
     }
 }
 
-void fanimationMQTTSub() {
+void fanimationMQTTSub(boolean setup) {
   client.subscribe(SUBSCRIBE_TOPIC_CMND_DIR);
   client.subscribe(SUBSCRIBE_TOPIC_CMND_FAN);  
   client.subscribe(SUBSCRIBE_TOPIC_CMND_SPEED);
   client.subscribe(SUBSCRIBE_TOPIC_CMND_LIGHT);
+
+  if(setup) client.subscribe(SUBSCRIBE_TOPIC_STAT_SETUP);
 }
 
 void fanimationSetup() {
@@ -257,8 +324,8 @@ void fanimationSetup() {
     fans[i].fanState = false;  
     fans[i].fanSpeed = FAN_LOW;
   }
+}
 
-  fans[9].lightState=true;
-  fans[3].fanState=true;
-  fans[3].fanSpeed=FAN_II;
+void fanimationSetupEnd() {
+  client.unsubscribe(SUBSCRIBE_TOPIC_STAT_SETUP);
 }

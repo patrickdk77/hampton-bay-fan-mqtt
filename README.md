@@ -5,6 +5,9 @@ Added support for Hampton Bay A25-TX028 rf remotes made by dawnsun
 Added support for fanimation 6speed fan remote controls
 All 3 can operate at the same time
 Modified rc-switch to handle the hamptonbay 24bit codes and the fanimation 12bit codes
+Added support to restore current fan state from mqtt retain storage on startup
+Fixed inverted bits for fanimation
+Added sleep delay
 
 ## Overview
 ESP8266 project enabling MQTT control for a Hampton Bay fan with a wireless receiver. Wireless communication is performed with a CC1101 wireless transceiver operating at 303 MHz.
