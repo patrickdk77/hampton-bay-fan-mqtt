@@ -9,6 +9,8 @@ RCSwitch mySwitch = RCSwitch();
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+WiFiServer TelnetServer(8266);
+
 // The ID returned from the RF code appears to be inversed and reversed for hamptonbay
 //   e.g. a dip setting of on off off off (1000) yields 1110
 // Convert between IDs from MQTT from dip switch settings and what is used in the RF codes
@@ -33,7 +35,6 @@ static unsigned long setupDelay=0;
 static boolean readMQTT=true;
 
 void setup_wifi() {
-
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
@@ -116,6 +117,7 @@ void SleepDelay(uint32_t mseconds) {
 }
 
 void setup() {
+  TelnetServer.begin();
   Serial.begin(115200);
 
 #ifdef HAMPTONBAY
@@ -139,6 +141,30 @@ void setup() {
   client.setCallback(callback);
 
   mySwitch.enableReceive(RX_PIN);
+
+  ArduinoOTA.setHostname((const char *)HOSTNAME);
+  if(sizeof(OTA_PASS)>0)
+    ArduinoOTA.setPassword((const char *)OTA_PASS);
+
+  ArduinoOTA.onStart([]() {
+    Serial.println("OTA Start");
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("OTA End");
+    Serial.println("Rebooting...");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r\n", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+  });
+  ArduinoOTA.begin();
 }
 
 void loop() {
@@ -195,6 +221,8 @@ void loop() {
     client.loop();
   }
 
+  ArduinoOTA.handle();
+  
   unsigned long looptime = millis()-t;
   if(looptime<SLEEP_DELAY)
     SleepDelay(SLEEP_DELAY-looptime);

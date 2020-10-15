@@ -2,12 +2,15 @@
 #define WIFI_SSID "ssid"
 #define WIFI_PASS "pass"
 
+#define HOSTNAME "rf-fans"
+#define OTA_PASS ""
+
 // Configure MQTT broker settings
 #define MQTT_HOST "192.168.1.1"
 #define MQTT_PORT 1883
 #define MQTT_USER "USER"
 #define MQTT_PASS "PASS"
-#define MQTT_CLIENT_NAME "rf-fans"   
+#define MQTT_CLIENT_NAME HOSTNAME
 
 // Compile in Hampton Bay FAN-9T (303.631mhz)
 #define HAMPTONBAY

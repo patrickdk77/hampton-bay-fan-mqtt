@@ -1,6 +1,9 @@
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include "RCSwitch.h"
 #include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 #include <PubSubClient.h>
 
 #include "config.h"
