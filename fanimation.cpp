@@ -91,6 +91,12 @@ void fanimationMQTT(char* topic, byte* payload, unsigned int length) {
       }
 
       if(strcmp(attr,"fan") ==0) {
+        if(strcmp(payloadChar,"toggle") == 0) {
+          if(fans[idint].fanState)
+            strcpy(payloadChar,"off");
+          else
+            strcpy(payloadChar,"on");
+        }
         if(strcmp(payloadChar,"on") == 0) {
           fans[idint].fanState = true;
           switch(fans[idint].fanSpeed) {
@@ -159,6 +165,12 @@ void fanimationMQTT(char* topic, byte* payload, unsigned int length) {
           transmitState(idint,0x3d);
         }
       } else if(strcmp(attr,"light") ==0) {
+        if(strcmp(payloadChar,"toggle") == 0) {
+          if(fans[idint].lightState)
+            strcpy(payloadChar,"off");
+          else
+            strcpy(payloadChar,"on");
+        }
         if(strcmp(payloadChar,"on") == 0) {
           fans[idint].lightState = !fans[idint].lightState;
           transmitState(idint,0x3e);
@@ -167,6 +179,12 @@ void fanimationMQTT(char* topic, byte* payload, unsigned int length) {
           transmitState(idint,0x3e);
         }
       } else if(strcmp(attr,"direction") ==0) {
+        if(strcmp(payloadChar,"toggle") == 0) {
+          if(fans[idint].directionState)
+            strcpy(payloadChar,"down");
+          else
+            strcpy(payloadChar,"up");
+        }
         if(strcmp(payloadChar,"up") == 0) {
           fans[idint].directionState = !fans[idint].directionState;
           transmitState(idint,0x3b);

@@ -84,6 +84,12 @@ void hamptonbayMQTT(char* topic, byte* payload, unsigned int length) {
       }
 
       if(strcmp(attr,"fan") ==0) {
+        if(strcmp(payloadChar,"toggle") == 0) {
+          if(fans[idint].fanState)
+            strcpy(payloadChar,"off");
+          else
+            strcpy(payloadChar,"on");
+        }
         if(strcmp(payloadChar,"on") == 0) {
           fans[idint].fanState = true;
         } else {
@@ -103,6 +109,12 @@ void hamptonbayMQTT(char* topic, byte* payload, unsigned int length) {
           fans[idint].fanState = false;
         }
       } else if(strcmp(attr,"light") ==0) {
+        if(strcmp(payloadChar,"toggle") == 0) {
+          if(fans[idint].lightState)
+            strcpy(payloadChar,"off");
+          else
+            strcpy(payloadChar,"on");
+        }
         if(strcmp(payloadChar,"on") == 0) {
           fans[idint].lightState = true;
         } else {
