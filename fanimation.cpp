@@ -3,12 +3,15 @@
 
 #define BASE_TOPIC FANIMATION_BASE_TOPIC
 
-#define SUBSCRIBE_TOPIC_CMND_FAN "cmnd/" BASE_TOPIC "/+/fan"
-#define SUBSCRIBE_TOPIC_CMND_DIR "cmnd/" BASE_TOPIC "/+/direction"
-#define SUBSCRIBE_TOPIC_CMND_SPEED "cmnd/" BASE_TOPIC "/+/speed"     
-#define SUBSCRIBE_TOPIC_CMND_LIGHT "cmnd/" BASE_TOPIC "/+/light"  
+#define CMND_BASE_TOPIC "cmnd/" BASE_TOPIC
+#define STAT_BASE_TOPIC "stat/" BASE_TOPIC
 
-#define SUBSCRIBE_TOPIC_STAT_SETUP "stat/" BASE_TOPIC "/#"
+#define SUBSCRIBE_TOPIC_CMND_FAN CMND_BASE_TOPIC "/+/fan"
+#define SUBSCRIBE_TOPIC_CMND_SPEED CMND_BASE_TOPIC "/+/speed"     
+#define SUBSCRIBE_TOPIC_CMND_LIGHT CMND_BASE_TOPIC "/+/light"  
+#define SUBSCRIBE_TOPIC_CMND_DIR CMND_BASE_TOPIC "/+/direction"
+
+#define SUBSCRIBE_TOPIC_STAT_SETUP STAT_BASE_TOPIC "/#"
 
 #define TX_FREQ 303.870 // Fanimation 
             
@@ -24,13 +27,13 @@ static unsigned long lasttime;
 
 static void postStateUpdate(int id) {
   char outTopic[100];
-  sprintf(outTopic, "stat/%s/%s/direction", BASE_TOPIC, idStrings[id]);
+  sprintf(outTopic, "%s/%s/direction", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].directionState ? "UP":"DOWN", true);
-  sprintf(outTopic, "stat/%s/%s/fan", BASE_TOPIC, idStrings[id]);
+  sprintf(outTopic, "%s/%s/fan", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].fanState ? "ON":"OFF", true);
-  sprintf(outTopic, "stat/%s/%s/speed", BASE_TOPIC, idStrings[id]);
+  sprintf(outTopic, "%s/%s/speed", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fanStateTable[fans[id].fanSpeed], true);
-  sprintf(outTopic, "stat/%s/%s/light", BASE_TOPIC, idStrings[id]);
+  sprintf(outTopic, "%s/%s/light", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].lightState ? "ON":"OFF", true);
 }
 
@@ -59,26 +62,29 @@ static void transmitState(int fanId, int code) {
   Serial.print("Sent command fanimation: ");
   Serial.print(fanId);
   Serial.print(" ");
-  Serial.println(code);
+  for(int b=12; b>0; b--) {
+    Serial.print(bitRead(code,b-1));
+  }
+  Serial.println("");
   postStateUpdate(fanId);
 }
 
 void fanimationMQTT(char* topic, byte* payload, unsigned int length) {
-  if(strncmp(topic, "cmnd/",5) == 0) {
+  if(strncmp(topic, CMND_BASE_TOPIC, sizeof(CMND_BASE_TOPIC)-1) == 0) {
     char payloadChar[length + 1];
     sprintf(payloadChar, "%s", payload);
     payloadChar[length] = '\0';
   
     // Get ID after the base topic + a slash
     char id[5];
-    memcpy(id, &topic[sizeof(BASE_TOPIC)+5], 4);
+    memcpy(id, &topic[sizeof(CMND_BASE_TOPIC)], 4);
     id[4] = '\0';
     if(strspn(id, idchars)) {
       uint8_t idint = strtol(id, (char**) NULL, 2);
       char *attr;
       // Split by slash after ID in topic to get attribute and action
     
-      attr = strtok(topic+sizeof(BASE_TOPIC) + 5 + 5, "/");
+      attr = strtok(topic+sizeof(CMND_BASE_TOPIC)-1 + 5, "/");
           // Convert payload to lowercase
       for(int i=0; payloadChar[i]; i++) {
         payloadChar[i] = tolower(payloadChar[i]);
@@ -174,21 +180,21 @@ void fanimationMQTT(char* topic, byte* payload, unsigned int length) {
       return;
     }
   }
-  if(strncmp(topic, "stat/",5) == 0) {
+  if(strncmp(topic, STAT_BASE_TOPIC, sizeof(STAT_BASE_TOPIC)-1) == 0) {
     char payloadChar[length + 1];
     sprintf(payloadChar, "%s", payload);
     payloadChar[length] = '\0';
   
     // Get ID after the base topic + a slash
     char id[5];
-    memcpy(id, &topic[sizeof(BASE_TOPIC)+5], 4);
+    memcpy(id, &topic[sizeof(STAT_BASE_TOPIC)], 4);
     id[4] = '\0';
     if(strspn(id, idchars)) {
       uint8_t idint = strtol(id, (char**) NULL, 2);
       char *attr;
       // Split by slash after ID in topic to get attribute and action
     
-      attr = strtok(topic+sizeof(BASE_TOPIC) + 5 + 5, "/");
+      attr = strtok(topic+sizeof(STAT_BASE_TOPIC)-1 + 5, "/");
           // Convert payload to lowercase
       for(int i=0; payloadChar[i]; i++) {
         payloadChar[i] = tolower(payloadChar[i]);
