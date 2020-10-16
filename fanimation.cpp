@@ -52,7 +52,7 @@ static void transmitState(int fanId, int code) {
   //     cccccc is the command
   //     d is safe to use fade for the light
   
-  int rfCode = 0x0000 | (!(fans[fanId].fade) << 6) | (~fanId & 0x0f) << 7 | (code&0x3f);
+  int rfCode = 0x0000 | (!(fans[fanId].fade&0x01) << 6) | ((~fanId) & 0x0f) << 7 | (code&0x3f);
   
   mySwitch.send(rfCode, 12);      // send 12 bit code
   mySwitch.disableTransmit();   // set Transmit off
@@ -63,7 +63,7 @@ static void transmitState(int fanId, int code) {
   Serial.print(fanId);
   Serial.print(" ");
   for(int b=12; b>0; b--) {
-    Serial.print(bitRead(code,b-1));
+    Serial.print(bitRead(rfCode,b-1));
   }
   Serial.println("");
   postStateUpdate(fanId);

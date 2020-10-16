@@ -45,7 +45,7 @@ static void transmitState(int fanId) {
   //   Where a is the inversed/reversed dip setting, 
   //     l is light state, ff is fan speed
   int fanRf = fans[fanId].fanState ? fans[fanId].fanSpeed : 0;
-  int rfCode = dipToRfIds[(~fanId&0x0f)] << 14 | fans[fanId].lightState << 7 | fanRf << 5;
+  int rfCode = dipToRfIds[((~fanId)&0x0f)] << 14 | fans[fanId].lightState << 7 | fanRf << 5;
             
   mySwitch.send(rfCode, 21);      // send 21 bit code
   mySwitch.disableTransmit();   // set Transmit off

@@ -51,7 +51,7 @@ static void transmitState(int fanId, int code) {
   //   Where a is the inversed/reversed dip setting, 
   //     ccc is the command (111 Power, 101 Fan, 100 Light, 011 Dim/Temp)
   //     dd is the data value
-  int rfCode = 0xfc6000 | (~fanId &0x0f) << 8 | (code&0xff);
+  int rfCode = 0xfc6000 | ((~fanId) &0x0f) << 8 | (code&0xff);
   
   mySwitch.send(rfCode, 24);      // send 24 bit code
   mySwitch.disableTransmit();   // set Transmit off
