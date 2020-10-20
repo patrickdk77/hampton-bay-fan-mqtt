@@ -18,7 +18,7 @@
 // Compile in Hampton Bay (dawnsun) A25-TX028 (304.015mhz approx)
 #define HAMPTONBAY2
 
-// Compile in Fanimation Slinger (303.870mhz approx)
+// Compile in Fanimation Slinger and HarberBreeze (303.870mhz approx)
 #define FANIMATION
 
 

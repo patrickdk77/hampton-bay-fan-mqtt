@@ -46,12 +46,25 @@ static void transmitState(int fanId, int code) {
   mySwitch.setProtocol(RF_PROTOCOL);        // send Received Protocol
 
   // Build out RF code
-  //   Code follows the 12 bit pattern
-  //   0aaaadcccccc
+  //   Code follows the 12 bit pattern, built ontop of harberbreeze?
+  //   0aaaadccc1cl
   //   Where a is the inversed/reversed dip setting, 
-  //     cccccc is the command
+  //     ccc1c is the command, no idea what the 1 does yet, fanimation and harberbreeze don't seem to use that bit
+  // 01111 VI	H
+  // 01110 V	H+Off
+  // 10011 IV	M+L
+  // 10111 III	M
+  // 11010 II	L+Off
+  // 11011 I	L
+  // 11110 Off	Off
+  //     l is the light toggle
   //     d is safe to use fade for the light
-  
+
+  // Harber Breeze UC-9050T and UC-7070T
+  //   0aaaa1hml1fl
+  //   Where a is the inversed/reversed dip setting, 
+  //     set 0 to command, h=high, m=med, l=low, f=fan off, l=light
+        
   int rfCode = 0x0000 | (!(fans[fanId].fade&0x01) << 6) | ((~fanId) & 0x0f) << 7 | (code&0x3f);
   
   mySwitch.send(rfCode, 12);      // send 12 bit code
@@ -131,11 +144,11 @@ void fanimationMQTT(char* topic, byte* payload, unsigned int length) {
         } else if(strcmp(payloadChar,"medium") ==0) {
           fans[idint].fanState = true;
           fans[idint].fanSpeed = FAN_MED;
-          transmitState(idint,0x27);
+          transmitState(idint,0x2f);
         } else if(strcmp(payloadChar,"low") ==0) {
           fans[idint].fanState = true;
           fans[idint].fanSpeed = FAN_LOW;
-          transmitState(idint,0x35);
+          transmitState(idint,0x37);
         } else if(strcmp(payloadChar,"i") ==0) {
           fans[idint].fanState = true;
           fans[idint].fanSpeed = FAN_I;

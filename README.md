@@ -8,6 +8,7 @@ Modified rc-switch to handle the hamptonbay 24bit codes and the fanimation 12bit
 Added support to restore current fan state from mqtt retain storage on startup
 Fixed inverted bits for fanimation
 Added sleep delay
+Added support for HarborBreeze UC-9050T/UC-7080T
 
 ## Overview
 ESP8266 project enabling MQTT control for a Hampton Bay fan with a wireless receiver. Wireless communication is performed with a CC1101 wireless transceiver operating at 303 MHz.
@@ -51,7 +52,7 @@ By default, the state/command topics will be
 ...corresponds to a fan ID of `1000`
 
 ### Home Assistant
-To use this in Home Assistant as an MQTT Fan and MQTT Light, I'm using this config
+To use this in Home Assistant as an MQTT Fan and MQTT Light, I'm using this config for hamptonbay
 ```yaml
 fan:
 - platform: mqtt
@@ -76,4 +77,58 @@ light:
   payload_not_available: "Offline"
   state_topic: "stat/hamptonbay/1000/light"
   command_topic: "cmnd/hamptonbay/1000/light"
+```
+
+For HarborBreeze
+```yaml
+fan:
+- platform: mqtt
+  name: "Bedroom Fan"
+  availability_topic: "tele/rf-fans/LWT"
+  payload_available: "Online"
+  payload_not_available: "Offline"
+  state_topic: "stat/fanimation/1000/fan"
+  command_topic: "cmnd/fanimation/1000/fan"
+  speed_state_topic: "stat/fanimation/1000/speed"
+  speed_command_topic: "cmnd/fanimation/1000/speed"
+  speeds:
+    - low
+    - medium
+    - high
+
+light:
+- platform: mqtt
+  name: "Bedroom Fan Light"
+  availability_topic: "tele/rf-fans/LWT"
+  payload_available: "Online"
+  payload_not_available: "Offline"
+  state_topic: "stat/fanimation/1000/light"
+  command_topic: "cmnd/fanimation/1000/light"
+```
+
+For Fanimation
+```yaml
+fan:
+- platform: mqtt
+  name: "Bedroom Fan"
+  availability_topic: "tele/rf-fans/LWT"
+  payload_available: "Online"
+  payload_not_available: "Offline"
+  state_topic: "stat/fanimation/1000/fan"
+  command_topic: "cmnd/fanimation/1000/fan"
+  speed_state_topic: "stat/fanimation/1000/speed"
+  speed_command_topic: "cmnd/fanimation/1000/speed"
+  speeds:
+    - low
+    - medium
+    - high
+
+light:
+- platform: mqtt
+  name: "Bedroom Fan Light"
+  availability_topic: "tele/rf-fans/LWT"
+  payload_available: "Online"
+  payload_not_available: "Offline"
+  state_topic: "stat/fanimation/1000/light"
+  command_topic: "cmnd/fanimation/1000/light"
 ```
