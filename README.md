@@ -9,6 +9,8 @@ Added support to restore current fan state from mqtt retain storage on startup
 Fixed inverted bits for fanimation
 Added sleep delay
 Added support for HarborBreeze UC-9050T/UC-7080T
+Added support for + and - on fan speeds
+Added doorbell support (I have mounted mine in the doorbell for good full house coverage of the rf)
 
 ## Overview
 ESP8266 project enabling MQTT control for a Hampton Bay fan with a wireless receiver. Wireless communication is performed with a CC1101 wireless transceiver operating at 303 MHz.
@@ -131,4 +133,26 @@ light:
   payload_not_available: "Offline"
   state_topic: "stat/fanimation/1000/light"
   command_topic: "cmnd/fanimation/1000/light"
+```
+
+For Doorbells
+```yaml
+binary_sensor:
+- platform: mqtt
+  name: "Doorbell Front"
+  state_topic: "stat/doorbell/1/state"
+  availability_topic: "tele/rf-fans/LWT"
+  payload_available: "Online"
+  payload_not_available: "Offline"    
+  payload_on: "ON"
+  payload_off: "OFF"
+
+- platform: mqtt
+  name: "Doorbell Rear"
+  state_topic: "stat/doorbell/2/state"
+  availability_topic: "tele/rf-fans/LWT"
+  payload_available: "Online"
+  payload_not_available: "Offline"    
+  payload_on: "ON"
+  payload_off: "OFF"
 ```

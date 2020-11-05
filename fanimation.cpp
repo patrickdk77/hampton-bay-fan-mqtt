@@ -3,8 +3,8 @@
 
 #define BASE_TOPIC FANIMATION_BASE_TOPIC
 
-#define CMND_BASE_TOPIC "cmnd/" BASE_TOPIC
-#define STAT_BASE_TOPIC "stat/" BASE_TOPIC
+#define CMND_BASE_TOPIC CMND_TOPIC BASE_TOPIC
+#define STAT_BASE_TOPIC STAT_TOPIC BASE_TOPIC
 
 #define SUBSCRIBE_TOPIC_CMND_FAN CMND_BASE_TOPIC "/+/fan"
 #define SUBSCRIBE_TOPIC_CMND_SPEED CMND_BASE_TOPIC "/+/speed"     
@@ -137,7 +137,59 @@ void fanimationMQTT(char* topic, byte* payload, unsigned int length) {
           transmitState(idint,0x3d);
         }
       } else if(strcmp(attr,"speed") ==0) {
-        if(strcmp(payloadChar,"high") ==0) {
+        if(strcmp(payloadChar,"+") ==0) {
+          fans[idint].fanState = true;
+          switch(fans[idint].fanSpeed) {
+            case FAN_I:
+              fans[idint].fanSpeed=FAN_II;
+              break;
+            case FAN_II:
+              fans[idint].fanSpeed=FAN_III;
+              break;
+            case FAN_III:
+              fans[idint].fanSpeed=FAN_IV;
+              break;
+            case FAN_IV:
+              fans[idint].fanSpeed=FAN_V;
+              break;
+            case FAN_V:
+              fans[idint].fanSpeed=FAN_VI;
+              break;
+            case FAN_VI:
+              fans[idint].fanSpeed=FAN_VI;
+              break;
+            default:
+              if(fans[idint].fanSpeed>FAN_VI)
+                fans[idint].fanSpeed--;
+              break;
+          }
+        } else if(strcmp(payloadChar,"-") ==0) {
+          fans[idint].fanState = true;
+          switch(fans[idint].fanSpeed) {
+            case FAN_I:
+              fans[idint].fanSpeed=FAN_I;
+              break;
+            case FAN_II:
+              fans[idint].fanSpeed=FAN_I;
+              break;
+            case FAN_III:
+              fans[idint].fanSpeed=FAN_II;
+              break;
+            case FAN_IV:
+              fans[idint].fanSpeed=FAN_III;
+              break;
+            case FAN_V:
+              fans[idint].fanSpeed=FAN_IV;
+              break;
+            case FAN_VI:
+              fans[idint].fanSpeed=FAN_V;
+              break;
+            default:
+              if(fans[idint].fanSpeed>FAN_I)
+                fans[idint].fanSpeed++;
+              break;
+          }
+        } else if(strcmp(payloadChar,"high") ==0) {
           fans[idint].fanState = true;
           fans[idint].fanSpeed = FAN_HI;
           transmitState(idint,0x1f);

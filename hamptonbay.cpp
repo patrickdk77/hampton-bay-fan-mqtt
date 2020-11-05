@@ -3,8 +3,8 @@
 
 #define BASE_TOPIC HAMPTONBAY_BASE_TOPIC
 
-#define CMND_BASE_TOPIC "cmnd/" BASE_TOPIC
-#define STAT_BASE_TOPIC "stat/" BASE_TOPIC
+#define CMND_BASE_TOPIC CMND_TOPIC BASE_TOPIC
+#define STAT_BASE_TOPIC STAT_TOPIC BASE_TOPIC
 
 #define SUBSCRIBE_TOPIC_CMND_FAN CMND_BASE_TOPIC "/+/fan"
 #define SUBSCRIBE_TOPIC_CMND_SPEED CMND_BASE_TOPIC "/+/speed"     
@@ -96,7 +96,41 @@ void hamptonbayMQTT(char* topic, byte* payload, unsigned int length) {
           fans[idint].fanState = false;
         }
       } else if(strcmp(attr,"speed") ==0) {
-        if(strcmp(payloadChar,"high") ==0) {
+        if(strcmp(payloadChar,"+") ==0) {
+          fans[idint].fanState = true;
+          switch(fans[idint].fanSpeed) {
+            case FAN_LOW:
+              fans[idint].fanSpeed=FAN_MED;
+              break;
+            case FAN_MED:
+              fans[idint].fanSpeed=FAN_HI;
+              break;
+            case FAN_HI:
+              fans[idint].fanSpeed=FAN_HI;
+              break;
+            default:
+              if(fans[idint].fanSpeed>FAN_HI)
+                fans[idint].fanSpeed--;
+              break;
+          }
+        } else if(strcmp(payloadChar,"-") ==0) {
+          fans[idint].fanState = true;
+          switch(fans[idint].fanSpeed) {
+            case FAN_HI:
+              fans[idint].fanSpeed=FAN_MED;
+              break;
+            case FAN_MED:
+              fans[idint].fanSpeed=FAN_LOW;
+              break;
+            case FAN_LOW:
+              fans[idint].fanSpeed=FAN_LOW;
+              break;
+            default:
+              if(fans[idint].fanSpeed<FAN_LOW)
+                fans[idint].fanSpeed++;
+              break;
+          }
+        } else if(strcmp(payloadChar,"high") ==0) {
           fans[idint].fanState = true;
           fans[idint].fanSpeed = FAN_HI;
         } else if(strcmp(payloadChar,"medium") ==0) {

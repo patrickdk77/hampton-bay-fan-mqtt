@@ -3,8 +3,8 @@
 
 #define BASE_TOPIC HAMPTONBAY2_BASE_TOPIC
 
-#define CMND_BASE_TOPIC "cmnd/" BASE_TOPIC
-#define STAT_BASE_TOPIC "stat/" BASE_TOPIC
+#define CMND_BASE_TOPIC CMND_TOPIC BASE_TOPIC
+#define STAT_BASE_TOPIC STAT_TOPIC BASE_TOPIC
 
 #define SUBSCRIBE_TOPIC_CMND_POWER CMND_BASE_TOPIC "/+/power"
 #define SUBSCRIBE_TOPIC_CMND_FAN CMND_BASE_TOPIC "/+/fan"
@@ -118,7 +118,59 @@ void hamptonbay2MQTT(char* topic, byte* payload, unsigned int length) {
           transmitState(idint,0x77);
         }
       } else if(strcmp(attr,"speed") ==0) {
-        if(strcmp(payloadChar,"high") ==0) {
+        if(strcmp(payloadChar,"+") ==0) {
+          if(fans[idint].powerState==false) {
+            fans[idint].powerState=true;
+            transmitState(idint,0x7e); // Turn on
+          }
+          fans[idint].fanState = true;
+          switch(fans[idint].fanSpeed) {
+            case FAN_LOW:
+              fans[idint].fanSpeed=FAN_MED;
+              transmitState(idint,0x75);
+              break;
+            case FAN_MED:
+              fans[idint].fanSpeed=FAN_HI;
+              transmitState(idint,0x74);
+              break;
+            case FAN_HI:
+              fans[idint].fanSpeed=FAN_HI;
+              transmitState(idint,0x74);
+              break;
+            default:
+              if(fans[idint].fanSpeed>FAN_HI)
+                fans[idint].fanSpeed--;
+              break;
+          }
+        } else if(strcmp(payloadChar,"-") ==0) {
+          if(fans[idint].powerState==false) {
+            fans[idint].powerState=true;
+            transmitState(idint,0x7e); // Turn on
+          }
+          fans[idint].fanState = true;
+          switch(fans[idint].fanSpeed) {
+            case FAN_HI:
+              fans[idint].fanSpeed=FAN_MED;
+              transmitState(idint,0x75);
+              break;
+            case FAN_MED:
+              fans[idint].fanSpeed=FAN_LOW;
+              transmitState(idint,0x76);
+              break;
+            case FAN_LOW:
+              fans[idint].fanSpeed=FAN_LOW;
+              transmitState(idint,0x76);
+              break;
+            default:
+              if(fans[idint].fanSpeed<FAN_LOW)
+                fans[idint].fanSpeed++;
+              break;
+          }
+          if(fans[idint].powerState==false) {
+            fans[idint].powerState=true;
+            transmitState(idint,0x7e); // Turn on
+          }
+        } else if(strcmp(payloadChar,"high") ==0) {
           fans[idint].fanState = true;
           fans[idint].fanSpeed = FAN_HI;
           if(fans[idint].powerState==false) {

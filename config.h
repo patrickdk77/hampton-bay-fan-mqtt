@@ -25,3 +25,8 @@
 #define HAMPTONBAY_BASE_TOPIC "hamptonbay"
 #define HAMPTONBAY2_BASE_TOPIC "hamptonbay2"
 #define FANIMATION_BASE_TOPIC "fanimation"
+
+// Doorbell pins, define to use
+#define DOORBELL1 0
+#define DOORBELL2 2
+//#define DOORBELL3 3

@@ -17,7 +17,11 @@
   #include "fanimation.h"
 #endif
 
-#define STATUS_TOPIC "tele/" MQTT_CLIENT_NAME "/LWT"
+#define TELE_TOPIC "tele/"
+#define CMND_TOPIC "cmnd/"
+#define STAT_TOPIC "stat/"
+
+#define STATUS_TOPIC TELE_TOPIC MQTT_CLIENT_NAME "/LWT"
 
 // Set receive and transmit pin numbers (GDO0 and GDO2)
 #ifdef ESP32 // for esp32! Receiver on GPIO pin 4. Transmit on GPIO pin 2.
@@ -68,3 +72,21 @@ extern const char *fanStateTable[];
 extern const byte dipToRfIds[16];
 extern const char *idStrings[16];
 extern char idchars[];
+
+#ifdef DOORBELL1
+#ifndef DOORBELL_INT
+#define DOORBELL_INT 1
+#endif
+#endif
+
+#ifdef DOORBELL2
+#ifndef DOORBELL_INT
+#define DOORBELL_INT 1
+#endif
+#endif
+
+#ifdef DOORBELL3
+#ifndef DOORBELL_INT
+#define DOORBELL_INT 1
+#endif
+#endif

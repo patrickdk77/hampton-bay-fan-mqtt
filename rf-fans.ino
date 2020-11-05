@@ -34,6 +34,46 @@ static unsigned long reconnectDelay=0;
 static unsigned long setupDelay=0;
 static boolean readMQTT=true;
 
+#ifndef DOORBELL_COOLDOWN
+#define DOORBELL_COOLDOWN 2000 // how many milliseconds before retrigger is allowed
+#endif DOORBELL_COOLDOWN
+
+#ifdef DOORBELL1
+static char doorbell1=1;
+static unsigned long doorbell1_milli=DOORBELL_COOLDOWN;
+static unsigned long doorbell1_debug_milli=0;
+#endif
+#ifdef DOORBELL2
+static char doorbell2=1;
+static unsigned long doorbell2_milli=DOORBELL_COOLDOWN;
+#endif
+#ifdef DOORBELL3
+static char doorbell3=1;
+static unsigned long doorbell3_milli=DOORBELL_COOLDOWN;
+#endif
+
+#ifdef DOORBELL_INT
+volatile static byte doorbell=0;
+
+#ifdef DOORBELL1
+ICACHE_RAM_ATTR void doorbell1_int() {
+  doorbell|=0x01;
+}
+#endif
+
+#ifdef DOORBELL2
+ICACHE_RAM_ATTR void doorbell2_int() {
+  doorbell|=0x02;
+}
+#endif
+
+#ifdef DOORBELL3
+ICACHE_RAM_ATTR void doorbell3_int() {
+  doorbell|=0x04;
+}
+#endif
+#endif
+
 void setup_wifi() {
   delay(10);
   // We start by connecting to a WiFi network
@@ -165,6 +205,19 @@ void setup() {
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
   ArduinoOTA.begin();
+
+#ifdef DOORBELL1
+  pinMode(DOORBELL1,INPUT_PULLUP);
+#ifdef DOORBELL_INT
+  attachInterrupt(digitalPinToInterrupt(DOORBELL1), doorbell1_int, FALLING);
+#endif
+#endif
+#ifdef DOORBELL2
+  pinMode(DOORBELL2,INPUT_PULLUP);
+#ifdef DOORBELL_INT
+  attachInterrupt(digitalPinToInterrupt(DOORBELL2), doorbell2_int, FALLING);
+#endif
+#endif
 }
 
 void loop() {
@@ -223,6 +276,120 @@ void loop() {
 
   ArduinoOTA.handle();
   
+#ifdef DOORBELL1
+  if(doorbell1==0) {
+#ifdef DOORBELL_INT
+    if((doorbell&0x01)==0x01) {
+      doorbell&=(~0x01);
+#else
+    if(digitalRead(DOORBELL1)==LOW) {
+#endif
+      if(doorbell1_milli==0) {
+        char outTopic[100];
+        doorbell1_milli=t;
+        sprintf(outTopic, "%sdoorbell/1/state", STAT_TOPIC);
+        client.publish(outTopic, "ON", true);
+      }
+      doorbell1=1;
+    }
+  } else {
+#ifdef DOORBELL_INT
+    if((doorbell&0x01)==0) {
+#else
+    if(digitalRead(DOORBELL1)==HIGH) {
+#endif
+      if((t-doorbell1_milli)>DOORBELL_COOLDOWN) {
+        char outTopic[100];
+        doorbell1_milli=0;
+        doorbell1=0;
+        sprintf(outTopic, "%sdoorbell/1/state", STAT_TOPIC);
+        client.publish(outTopic, "OFF", true);
+      }
+    } else {
+      doorbell1_milli=t;
+#ifdef DOORBELL_INT
+      doorbell&=(~0x01);
+#endif
+    }
+  }
+#endif
+
+#ifdef DOORBELL2
+  if(doorbell2==0) {
+#ifdef DOORBELL_INT
+    if((doorbell&0x02)==0x02) {
+      doorbell&=(~0x02);
+#else
+    if(digitalRead(DOORBELL2)==LOW) {
+#endif
+      if(doorbell2_milli==0) {
+        char outTopic[100];
+        doorbell2_milli=t;
+        sprintf(outTopic, "%sdoorbell/2/state", STAT_TOPIC);
+        client.publish(outTopic, "ON", true);
+      }
+      doorbell2=1;
+    }
+  } else {
+#ifdef DOORBELL_INT
+    if((doorbell&0x02)==0x00) {
+#else
+    if(digitalRead(DOORBELL2)==HIGH) {
+#endif
+      if((t-doorbell2_milli)>DOORBELL_COOLDOWN) {
+        char outTopic[100];
+        doorbell2_milli=0;
+        doorbell2=0;
+        sprintf(outTopic, "%sdoorbell/2/state", STAT_TOPIC);
+        client.publish(outTopic, "OFF", true);
+      }
+    } else {
+      doorbell2_milli=t;
+#ifdef DOORBELL_INT
+      doorbell&=(~0x02);
+#endif
+    }
+  }
+#endif
+
+#ifdef DOORBELL3
+  if(doorbell3==0) {
+#ifdef DOORBELL_INT
+    if((doorbell&0x04)==0x04) {
+      doorbell&=(~0x04);
+#else
+    if(digitalRead(DOORBELL3)==LOW) {
+#endif
+      if(doorbell3_milli==0) {
+        char outTopic[100];
+        doorbell3_milli=t;
+        sprintf(outTopic, "%sdoorbell/3/state", STAT_TOPIC);
+        client.publish(outTopic, "ON", true);
+      }
+      doorbell3=1;
+    }
+  } else {
+#ifdef DOORBELL_INT
+    if((doorbell&0x04)==0x00) {
+#else
+    if(digitalRead(DOORBELL3)==HIGH) {
+#endif
+      if((t-doorbell3_milli)>DOORBELL_COOLDOWN) {
+        char outTopic[100];
+        doorbell3_milli=0;
+        doorbell3=0;
+        sprintf(outTopic, "%sdoorbell/3/state", STAT_TOPIC);
+        client.publish(outTopic, "OFF", true);
+      }
+    } else {
+      doorbell3_milli=t;
+#ifdef DOORBELL_INT
+      doorbell&=(~0x04);
+#endif
+    }
+  }
+#endif
+
   unsigned long looptime = millis()-t;
   if(looptime<SLEEP_DELAY)
     SleepDelay(SLEEP_DELAY-looptime);
