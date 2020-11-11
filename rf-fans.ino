@@ -81,15 +81,19 @@ void setup_wifi() {
   Serial.print("Connecting to ");
   Serial.println(WIFI_SSID);
 
+  WiFi.persistent(false);
+  WiFi.disconnect();
+  delay(200);
+  WiFi.mode(WIFI_STA);
+  WiFi.hostname(HOSTNAME);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
-  WiFi.setAutoReconnect(true);
-  WiFi.setAutoConnect(true);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
 
+  WiFi.setAutoReconnect(true);
   randomSeed(micros());
 
   Serial.println("");
