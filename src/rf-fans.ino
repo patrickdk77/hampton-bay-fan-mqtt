@@ -37,7 +37,7 @@ static boolean ignorerf=false;
 
 #ifndef DOORBELL_COOLDOWN
 #define DOORBELL_COOLDOWN 2000 // how many milliseconds before retrigger is allowed
-#endif DOORBELL_COOLDOWN
+#endif
 
 #ifdef DOORBELL1
 static char doorbell1=1;
