@@ -33,6 +33,7 @@ char idchars[] = "01";
 static unsigned long reconnectDelay=0;
 static unsigned long setupDelay=0;
 static boolean readMQTT=true;
+static boolean ignorerf=false;
 
 #ifndef DOORBELL_COOLDOWN
 #define DOORBELL_COOLDOWN 2000 // how many milliseconds before retrigger is allowed
@@ -103,22 +104,45 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
+  char payloadChar[length + 1];
+  sprintf(payloadChar, "%s", payload);
+  payloadChar[length] = '\0';
+
+  // Convert payload to lowercase
+  for(int i=0; payloadChar[i]; i++) {
+    payloadChar[i] = tolower(payloadChar[i]);
+  }
+
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
   for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+    Serial.print(payloadChar);
   }
   Serial.println();
-
+  
+  if(strncmp(topic, CMND_TOPIC "/restart", sizeof(CMND_TOPIC "/restart")-1) == 0) {
+    ESP.restart();
+  }
+  if(strncmp(topic, CMND_TOPIC "/reset", sizeof(CMND_TOPIC "/reset")-1) == 0) {
+    ESP.reset();
+  }
+  if(strncmp(topic, CMND_TOPIC "/reset", sizeof(CMND_TOPIC "/ignorerf")-1) == 0) {
+    if(strcmp(payloadChar,"on") == 0)
+      ignorerf=true;
+    else
+      ignorerf=false;
+    client.publish(STAT_TOPIC "/ignorerf", ignorerf ? "ON":"OFF", true);
+  }
+  
 #ifdef HAMPTONBAY
-  hamptonbayMQTT(topic,payload,length);
+  hamptonbayMQTT(topic,payloadChar,length);
 #endif
 #ifdef HAMPTONBAY2
-  hamptonbay2MQTT(topic,payload,length);
+  hamptonbay2MQTT(topic,payloadChar,length);
 #endif
 #ifdef FANIMATION
-  fanimationMQTT(topic,payload,length);
+  fanimationMQTT(topic,payloadChar,length);
 #endif
 }
 
@@ -130,6 +154,9 @@ void reconnectMQTT() {
       // Once connected, publish an announcement...
       client.publish(STATUS_TOPIC, "Online", true);
       // ... and resubscribe
+      client.subscribe(CMND_TOPIC "/restart");
+      client.subscribe(CMND_TOPIC "/reset");
+      client.subscribe(CMND_TOPIC "/ignorerf");
 #ifdef HAMPTONBAY
       hamptonbayMQTTSub(readMQTT);
 #endif
@@ -257,13 +284,13 @@ void loop() {
     Serial.println();
     
 #ifdef HAMPTONBAY
-    hamptonbayRF(value,prot,bits);
+    if(!ignorerf) hamptonbayRF(value,prot,bits);
 #endif
 #ifdef HAMPTONBAY2
-    hamptonbay2RF(value,prot,bits);
+    if(!ignorerf) hamptonbay2RF(value,prot,bits);
 #endif
 #ifdef FANIMATION
-    fanimationRF(value,prot,bits);
+    if(!ignorerf) fanimationRF(value,prot,bits);
 #endif
 
     mySwitch.resetAvailable();

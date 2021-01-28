@@ -62,11 +62,8 @@ static void transmitState(int fanId) {
   postStateUpdate(fanId);
 }
 
-void hamptonbayMQTT(char* topic, byte* payload, unsigned int length) {
+void hamptonbayMQTT(char* topic, char* payloadChar, unsigned int length) {
   if(strncmp(topic, CMND_BASE_TOPIC, sizeof(CMND_BASE_TOPIC)-1) == 0) {
-    char payloadChar[length + 1];
-    sprintf(payloadChar, "%s", payload);
-    payloadChar[length] = '\0';
   
     // Get ID after the base topic + a slash
     char id[5];
@@ -78,10 +75,6 @@ void hamptonbayMQTT(char* topic, byte* payload, unsigned int length) {
       // Split by slash after ID in topic to get attribute and action
     
       attr = strtok(topic+sizeof(CMND_BASE_TOPIC)-1 + 5, "/");
-          // Convert payload to lowercase
-      for(int i=0; payloadChar[i]; i++) {
-        payloadChar[i] = tolower(payloadChar[i]);
-      }
 
       if(strcmp(attr,"fan") ==0) {
         if(strcmp(payloadChar,"toggle") == 0) {
@@ -162,9 +155,6 @@ void hamptonbayMQTT(char* topic, byte* payload, unsigned int length) {
     }
   }
   if(strncmp(topic, STAT_BASE_TOPIC, sizeof(STAT_BASE_TOPIC)-1) == 0) {
-    char payloadChar[length + 1];
-    sprintf(payloadChar, "%s", payload);
-    payloadChar[length] = '\0';
   
     // Get ID after the base topic + a slash
     char id[5];
@@ -176,10 +166,6 @@ void hamptonbayMQTT(char* topic, byte* payload, unsigned int length) {
       // Split by slash after ID in topic to get attribute and action
     
       attr = strtok(topic+sizeof(STAT_BASE_TOPIC)-1 + 5, "/");
-          // Convert payload to lowercase
-      for(int i=0; payloadChar[i]; i++) {
-        payloadChar[i] = tolower(payloadChar[i]);
-      }
 
       if(strcmp(attr,"fan") ==0) {
         if(strcmp(payloadChar,"on") == 0) {

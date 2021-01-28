@@ -100,7 +100,11 @@ enum {
 };
 
 #if not defined( RCSwitchDisableReceiving )
+#ifdef RCSwitch64
+volatile unsigned long long RCSwitch::nReceivedValue = 0;
+#else
 volatile unsigned long RCSwitch::nReceivedValue = 0;
+#endif
 volatile unsigned int RCSwitch::nReceivedBitlength = 0;
 volatile unsigned int RCSwitch::nReceivedDelay = 0;
 volatile unsigned int RCSwitch::nReceivedProtocol = 0;
@@ -454,21 +458,37 @@ char* RCSwitch::getCodeWordD(char sGroup, int nDevice, bool bStatus) {
  */
 void RCSwitch::sendTriState(const char* sCodeWord) {
   // turn the tristate code word into the corresponding bit pattern, then send it
+#ifdef RCSwitch64
+  unsigned long long code = 0;
+#else
   unsigned long code = 0;
+#endif
   unsigned int length = 0;
   for (const char* p = sCodeWord; *p; p++) {
+#ifdef RCSwitch64
+    code <<= 2LL;
+#else
     code <<= 2L;
+#endif
     switch (*p) {
       case '0':
         // bit pattern 00
         break;
       case 'F':
         // bit pattern 01
+#ifdef RCSwitch64
+        code |= 1LL;
+#else
         code |= 1L;
+#endif
         break;
       case '1':
         // bit pattern 11
+#ifdef RCSwitch64
+        code |= 3LL;
+#else
         code |= 3L;
+#endif
         break;
     }
     length += 2;
@@ -481,12 +501,24 @@ void RCSwitch::sendTriState(const char* sCodeWord) {
  */
 void RCSwitch::send(const char* sCodeWord) {
   // turn the tristate code word into the corresponding bit pattern, then send it
+#ifdef RCSwitch64
+  unsigned long long code = 0;
+#else
   unsigned long code = 0;
+#endif
   unsigned int length = 0;
   for (const char* p = sCodeWord; *p; p++) {
+#ifdef RCSwitch64
+    code <<= 1LL;
+#else
     code <<= 1L;
+#endif
     if (*p != '0')
+#ifdef RCSwitch64
+      code |= 1LL;
+#else
       code |= 1L;
+#endif
     length++;
   }
   this->send(code, length);
@@ -497,7 +529,11 @@ void RCSwitch::send(const char* sCodeWord) {
  * bits are sent from MSB to LSB, i.e., first the bit at position length-1,
  * then the bit at position length-2, and so on, till finally the bit at position 0.
  */
+#ifdef RCSwitch64
+void RCSwitch::send(unsigned long long code, unsigned int length) {
+#else
 void RCSwitch::send(unsigned long code, unsigned int length) {
+#endif
   if (this->nTransmitterPin == -1)
     return;
 
@@ -511,7 +547,11 @@ void RCSwitch::send(unsigned long code, unsigned int length) {
 
   for (int nRepeat = 0; nRepeat < nRepeatTransmit; nRepeat++) {
     for (int i = length-1; i >= 0; i--) {
+#ifdef RCSwitch64
+      if (code & (1LL << i))
+#else
       if (code & (1L << i))
+#endif
         this->transmit(protocol.one);
       else
         this->transmit(protocol.zero);
@@ -583,7 +623,11 @@ void RCSwitch::resetAvailable() {
   RCSwitch::nReceivedValue = 0;
 }
 
+#ifdef RCSwitch64
+unsigned long long RCSwitch::getReceivedValue() {
+#else
 unsigned long RCSwitch::getReceivedValue() {
+#endif
   return RCSwitch::nReceivedValue;
 }
 
@@ -619,7 +663,11 @@ bool RECEIVE_ATTR RCSwitch::receiveProtocol(const int p, unsigned int changeCoun
     memcpy_P(&pro, &proto[p-1], sizeof(Protocol));
 #endif
 
+#ifdef RCSwitch64
+    unsigned long long code = 0;
+#else
     unsigned long code = 0;
+#endif
     //Assuming the longer pulse length is the pulse captured in timings[0]
     const unsigned int syncLengthInPulses =  ((pro.syncFactor.low) > (pro.syncFactor.high)) ? (pro.syncFactor.low) : (pro.syncFactor.high);
     const unsigned int delay = RCSwitch::timings[0] / syncLengthInPulses;
@@ -645,14 +693,22 @@ bool RECEIVE_ATTR RCSwitch::receiveProtocol(const int p, unsigned int changeCoun
     const unsigned int firstDataTiming = (pro.invertedSignal) ? (2) : (1);
 
     for (unsigned int i = firstDataTiming; i < changeCount - 1; i += 2) {
-        code <<= 1;
+#ifdef RCSwitch64
+        code <<= 1LL;
+#else
+        code <<= 1L;
+#endif
         if (diff(RCSwitch::timings[i], delay * pro.zero.high) < delayTolerance &&
             diff(RCSwitch::timings[i + 1], delay * pro.zero.low) < delayTolerance) {
             // zero
         } else if (diff(RCSwitch::timings[i], delay * pro.one.high) < delayTolerance &&
                    diff(RCSwitch::timings[i + 1], delay * pro.one.low) < delayTolerance) {
             // one
-            code |= 1;
+#ifdef RCSwitch64
+            code |= 1LL;
+#else
+            code |= 1L;
+#endif
         } else {
             // Failed
             return false;
