@@ -30,7 +30,7 @@ This project uses the following libraries that are available through the Arduino
 * ESP8266 development board (Tested with a NodeMCU v2 and a D1 Mini)
 * CC1101 wireless transceiver
   * Wiring info can be found in the [SmartRC-CC1101-Driver-Lib readme](https://github.com/LSatan/SmartRC-CC1101-Driver-Lib#wiring)
-  * Schematic for d1mini with CC1101 and doorbell [Schematic](https://github.com/patrickdk77/hampton-bay-fan-mqtt/FanController.pdf)
+  * Schematic for d1mini with CC1101 and doorbell [Schematic](https://github.com/patrickdk77/hampton-bay-fan-mqtt/blob/master/FanController.pdf)
 
 ## Setup
 ### Configuration
