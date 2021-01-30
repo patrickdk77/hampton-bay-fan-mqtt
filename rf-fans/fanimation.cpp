@@ -57,7 +57,8 @@ static void transmitState(int fanId, int code) {
   // 11010 II	L+Off
   // 11011 I	L
   // 11110 Off	Off
-  // 11111 Top Light toggle (Federigo fan)
+  // 110111 Top Light toggle (Federigo fan)
+  // 111111 Bad debounce false transmit at end of repeat
   //     l is the light toggle (bottom if two)
   //     d is safe to use fade for the light
 
@@ -246,10 +247,10 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
         }
         if(strcmp(payloadChar,"on") == 0) {
           fans[idint].light2State = !fans[idint].light2State;
-          transmitState(idint,0x3f);
+          transmitState(idint,0x36);
         } else {
           fans[idint].light2State = !fans[idint].light2State;
-          transmitState(idint,0x3f);
+          transmitState(idint,0x36);
         }
       } else if(strcmp(attr,"direction") ==0) {
         if(strcmp(payloadChar,"toggle") == 0) {
@@ -358,7 +359,7 @@ void fanimationRF(int long value, int prot, int bits) {
           case 0x3b: // Direction
             fans[dipId].directionState=!(fans[dipId].directionState);
             break;
-          case 0x3f: // Light2 Top
+          case 0x36: // Light2 Top
             fans[dipId].light2State = !(fans[dipId].light2State);
             break;
           case 0x3e: // Light
@@ -392,6 +393,8 @@ void fanimationRF(int long value, int prot, int bits) {
             fans[dipId].fanState = false;
             break;
           case 0x2d: // Set
+            break;
+          case 0x3f: // bad code, debounce false trnsmit
             break;
           default:
             break;
