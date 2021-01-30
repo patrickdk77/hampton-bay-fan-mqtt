@@ -164,31 +164,33 @@ void callback(char* topic, byte* payload, unsigned int length) {
       n++;
     }
 
-    mySwitch.disableReceive();         // Receiver off
-    ELECHOUSE_cc1101.setMHZ(freq);
-    ELECHOUSE_cc1101.SetTx();           // set Transmit on
-    mySwitch.enableTransmit(TX_PIN);   // Transmit on
-    mySwitch.setRepeatTransmit(repeats); // transmission repetitions.
-    mySwitch.setProtocol(proto);        // send Received Protocol
+    if(freq>300.000 && freq<464.000 ) {
+      mySwitch.disableReceive();         // Receiver off
+      ELECHOUSE_cc1101.setMHZ(freq);
+      ELECHOUSE_cc1101.SetTx();           // set Transmit on
+      mySwitch.enableTransmit(TX_PIN);   // Transmit on
+      mySwitch.setRepeatTransmit(repeats); // transmission repetitions.
+      mySwitch.setProtocol(proto);        // send Received Protocol
 
-    mySwitch.send(rfCode, bits);      // send 12 bit code
-    mySwitch.disableTransmit();   // set Transmit off
-    ELECHOUSE_cc1101.setMHZ(RX_FREQ);
-    ELECHOUSE_cc1101.SetRx();      // set Receive on
-    mySwitch.enableReceive(RX_PIN);   // Receiver on
-    Serial.print("Sent command raw: ");
-    Serial.print(freq);
-    Serial.print(" - ");
-    Serial.print(proto);
-    Serial.print(" - ");
-    Serial.print(rfCode);
-    Serial.print(" - ");
-    Serial.print(bits);
-    Serial.print("  :  ");
-    for(int b=bits; b>0; b--) {
-      Serial.print(bitRead(rfCode,b-1));
+      mySwitch.send(rfCode, bits);      // send 12 bit code
+      mySwitch.disableTransmit();   // set Transmit off
+      ELECHOUSE_cc1101.setMHZ(RX_FREQ);
+      ELECHOUSE_cc1101.SetRx();      // set Receive on
+      mySwitch.enableReceive(RX_PIN);   // Receiver on
+      Serial.print("Sent command raw: ");
+      Serial.print(freq);
+      Serial.print(" - ");
+      Serial.print(proto);
+      Serial.print(" - ");
+      Serial.print(rfCode);
+      Serial.print(" - ");
+      Serial.print(bits);
+      Serial.print("  :  ");
+      for(int b=bits; b>0; b--) {
+        Serial.print(bitRead(rfCode,b-1));
+      }
+      Serial.println();
     }
-    Serial.println();
     return;
   }
  
