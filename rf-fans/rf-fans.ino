@@ -108,7 +108,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   payloadChar[length] = '\0';
 
   // Convert payload to lowercase
-  for(int i=0; payloadChar[i]; i++) {
+  for(unsigned i=0; payloadChar[i]; i++) {
     payloadChar[i] = tolower(payloadChar[i]);
   }
 
@@ -120,7 +120,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
   
-/*  if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/restart", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/restart")-1) == 0) {
+  if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/restart", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/restart")-1) == 0) {
     ESP.restart();
     return;
   }
@@ -142,7 +142,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     unsigned bits=0;
     unsigned repeats=7;
     float freq=303.000;
-    int n=0;
+    unsigned n=0;
     char *s;
 
     // freq,repeats,proto,bits
@@ -191,7 +191,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println();
     return;
   }
-*/
  
 #ifdef HAMPTONBAY
   hamptonbayMQTT(topic,payloadChar,length);
@@ -212,7 +211,7 @@ void reconnectMQTT() {
       // Once connected, publish an announcement...
       client.publish(STATUS_TOPIC, "Online", true);
       // ... and resubscribe
-      client.subscribe(CMND_TOPIC MQTT_CLIENT_NAME "/++");
+      client.subscribe(CMND_TOPIC MQTT_CLIENT_NAME "/#");
 #ifdef HAMPTONBAY
       hamptonbayMQTTSub(readMQTT);
 #endif
@@ -324,9 +323,9 @@ void loop() {
 
   // Handle received transmissions
   if (mySwitch.available()) {
-    int long rfCode =  mySwitch.getReceivedValue();        // save received Value
-    int proto = mySwitch.getReceivedProtocol();     // save received Protocol
-    int bits = mySwitch.getReceivedBitlength();     // save received Bitlength
+    unsigned long rfCode =  mySwitch.getReceivedValue();        // save received Value
+    unsigned proto = mySwitch.getReceivedProtocol();     // save received Protocol
+    unsigned bits = mySwitch.getReceivedBitlength();     // save received Bitlength
 
     Serial.print(proto);
     Serial.print(" - ");
@@ -334,7 +333,7 @@ void loop() {
     Serial.print(" - ");
     Serial.print(bits);
     Serial.print("  :  ");
-    for(int b=bits; b>0; b--) {
+    for(unsigned b=bits; b>0; b--) {
       Serial.print(bitRead(rfCode,b-1));
     }
     Serial.println();

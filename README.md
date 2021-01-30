@@ -12,6 +12,7 @@ Added support for HarborBreeze UC-9050T/UC-7080T
 Added support for + and - on fan speeds
 Added doorbell support (I have mounted mine in the doorbell for good full house coverage of the rf)
 Stabilize wifi better
+Added txrcswitch to send raw codes
 
 ## Overview
 ESP8266 project enabling MQTT control for a Hampton Bay fan with a wireless receiver. Wireless communication is performed with a CC1101 wireless transceiver operating at 303 MHz.
