@@ -7,8 +7,9 @@
 #define STAT_BASE_TOPIC STAT_TOPIC BASE_TOPIC
 
 #define SUBSCRIBE_TOPIC_CMND_FAN CMND_BASE_TOPIC "/+/fan"
-#define SUBSCRIBE_TOPIC_CMND_SPEED CMND_BASE_TOPIC "/+/speed"     
-#define SUBSCRIBE_TOPIC_CMND_LIGHT CMND_BASE_TOPIC "/+/light"  
+#define SUBSCRIBE_TOPIC_CMND_SPEED CMND_BASE_TOPIC "/+/speed"
+#define SUBSCRIBE_TOPIC_CMND_LIGHT CMND_BASE_TOPIC "/+/light"
+#define SUBSCRIBE_TOPIC_CMND_LIGHT2 CMND_BASE_TOPIC "/+/light2"
 #define SUBSCRIBE_TOPIC_CMND_DIR CMND_BASE_TOPIC "/+/direction"
 
 #define SUBSCRIBE_TOPIC_STAT_SETUP STAT_BASE_TOPIC "/#"
@@ -16,6 +17,7 @@
 #define TX_FREQ 303.870 // Fanimation 
             
 // RC-switch settings
+//#define RF_PROTOCOL 11 // For Federigo
 #define RF_PROTOCOL 13
 #define RF_REPEATS  7 
                         
@@ -35,6 +37,8 @@ static void postStateUpdate(int id) {
   client.publish(outTopic, fanStateTable[fans[id].fanSpeed], true);
   sprintf(outTopic, "%s/%s/light", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].lightState ? "ON":"OFF", true);
+  sprintf(outTopic, "%s/%s/light2", STAT_BASE_TOPIC, idStrings[id]);
+  client.publish(outTopic, fans[id].light2State ? "ON":"OFF", true);
 }
 
 static void transmitState(int fanId, int code) {
@@ -57,7 +61,8 @@ static void transmitState(int fanId, int code) {
   // 11010 II	L+Off
   // 11011 I	L
   // 11110 Off	Off
-  //     l is the light toggle
+  // 11111 Top Light toggle (Federigo fan)
+  //     l is the light toggle (bottom if two)
   //     d is safe to use fade for the light
 
   // Harber Breeze UC-9050T and UC-7070T
@@ -236,6 +241,20 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
           fans[idint].lightState = !fans[idint].lightState;
           transmitState(idint,0x3e);
         }
+      } else if(strcmp(attr,"light2") ==0) {
+        if(strcmp(payloadChar,"toggle") == 0) {
+          if(fans[idint].light2State)
+            strcpy(payloadChar,"off");
+          else
+            strcpy(payloadChar,"on");
+        }
+        if(strcmp(payloadChar,"on") == 0) {
+          fans[idint].light2State = !fans[idint].light2State;
+          transmitState(idint,0x3f);
+        } else {
+          fans[idint].light2State = !fans[idint].light2State;
+          transmitState(idint,0x3f);
+        }
       } else if(strcmp(attr,"direction") ==0) {
         if(strcmp(payloadChar,"toggle") == 0) {
           if(fans[idint].directionState)
@@ -301,6 +320,12 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
         } else {
           fans[idint].lightState = false;
         }
+      } else if(strcmp(attr,"light2") ==0) {
+        if(strcmp(payloadChar,"on") == 0) {
+          fans[idint].light2State = true;
+        } else {
+          fans[idint].light2State = false;
+        }
       } else if(strcmp(attr,"direction") ==0) {
         if(strcmp(payloadChar,"up") == 0) {
           fans[idint].directionState = true;
@@ -337,6 +362,9 @@ void fanimationRF(int long value, int prot, int bits) {
           case 0x3b: // Direction
             fans[dipId].directionState=!(fans[dipId].directionState);
             break;
+          case 0x3f: // Light2 Top
+            fans[dipId].light2State = !(fans[dipId].light2State);
+            break;
           case 0x3e: // Light
             fans[dipId].lightState = !(fans[dipId].lightState);
             break;
@@ -369,8 +397,6 @@ void fanimationRF(int long value, int prot, int bits) {
             break;
           case 0x2d: // Set
             break;
-          case 0x3f: // transmit by mistake? (no button pressed)
-            break;
           default:
             break;
         }
@@ -384,6 +410,7 @@ void fanimationMQTTSub(boolean setup) {
   client.subscribe(SUBSCRIBE_TOPIC_CMND_FAN);  
   client.subscribe(SUBSCRIBE_TOPIC_CMND_SPEED);
   client.subscribe(SUBSCRIBE_TOPIC_CMND_LIGHT);
+  client.subscribe(SUBSCRIBE_TOPIC_CMND_LIGHT2);
 
   if(setup) client.subscribe(SUBSCRIBE_TOPIC_STAT_SETUP);
 }
@@ -396,6 +423,7 @@ void fanimationSetup() {
     fans[i].fade = false;
     fans[i].directionState = false;
     fans[i].lightState = false;
+    fans[i].light2State = false;
     fans[i].fanState = false;  
     fans[i].fanSpeed = FAN_LOW;
   }

@@ -60,6 +60,7 @@ struct fan
   bool fade;
   bool directionState;
   bool lightState;
+  bool light2State;
   bool fanState;
   uint8_t fanSpeed;
 };

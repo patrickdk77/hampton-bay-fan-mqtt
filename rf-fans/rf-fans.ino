@@ -42,7 +42,6 @@ static boolean ignorerf=false;
 #ifdef DOORBELL1
 static char doorbell1=1;
 static unsigned long doorbell1_milli=DOORBELL_COOLDOWN;
-static unsigned long doorbell1_debug_milli=0;
 #endif
 #ifdef DOORBELL2
 static char doorbell2=1;
@@ -116,7 +115,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
-  for (int i = 0; i < length; i++) {
+  for (unsigned i = 0; i < length; i++) {
     Serial.print(payloadChar);
   }
   Serial.println();
