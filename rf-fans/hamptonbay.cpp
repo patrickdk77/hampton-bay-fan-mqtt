@@ -6,9 +6,7 @@
 #define CMND_BASE_TOPIC CMND_TOPIC BASE_TOPIC
 #define STAT_BASE_TOPIC STAT_TOPIC BASE_TOPIC
 
-#define SUBSCRIBE_TOPIC_CMND_FAN CMND_BASE_TOPIC "/+/fan"
-#define SUBSCRIBE_TOPIC_CMND_SPEED CMND_BASE_TOPIC "/+/speed"     
-#define SUBSCRIBE_TOPIC_CMND_LIGHT CMND_BASE_TOPIC "/+/light"  
+#define SUBSCRIBE_TOPIC_CMND CMND_BASE_TOPIC "/#"
 
 #define SUBSCRIBE_TOPIC_STAT_SETUP STAT_BASE_TOPIC "/#"
 
@@ -226,9 +224,7 @@ void hamptonbayRF(int long value, int prot, int bits) {
 }
 
 void hamptonbayMQTTSub(boolean setup) {
-  client.subscribe(SUBSCRIBE_TOPIC_CMND_FAN);  
-  client.subscribe(SUBSCRIBE_TOPIC_CMND_SPEED);
-  client.subscribe(SUBSCRIBE_TOPIC_CMND_LIGHT);
+  client.subscribe(SUBSCRIBE_TOPIC_CMND);
   if(setup)   client.subscribe(SUBSCRIBE_TOPIC_STAT_SETUP);
 }
 

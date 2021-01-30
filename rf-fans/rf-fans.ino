@@ -120,20 +120,79 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
   
-  if(strncmp(topic, CMND_TOPIC "/restart", sizeof(CMND_TOPIC "/restart")-1) == 0) {
+/*  if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/restart", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/restart")-1) == 0) {
     ESP.restart();
+    return;
   }
-  if(strncmp(topic, CMND_TOPIC "/reset", sizeof(CMND_TOPIC "/reset")-1) == 0) {
+  if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/reset", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/reset")-1) == 0) {
     ESP.reset();
+    return;
   }
-  if(strncmp(topic, CMND_TOPIC "/reset", sizeof(CMND_TOPIC "/ignorerf")-1) == 0) {
+  if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/ignorerf", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/ignorerf")-1) == 0) {
     if(strcmp(payloadChar,"on") == 0)
       ignorerf=true;
     else
       ignorerf=false;
-    client.publish(STAT_TOPIC "/ignorerf", ignorerf ? "ON":"OFF", true);
+    client.publish(STAT_TOPIC MQTT_CLIENT_NAME "/ignorerf", ignorerf ? "ON":"OFF", true);
+    return;
   }
-  
+  if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/txrcswitch", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/txrcswitch")-1) == 0) {
+    unsigned long rfCode=0;
+    unsigned proto=11;
+    unsigned bits=0;
+    unsigned repeats=7;
+    float freq=303.000;
+    int n=0;
+    char *s;
+
+    // freq,repeats,proto,bits
+    for(s=strtok(payloadChar,(const char*)','); s; s=strtok(NULL,(const char*)',')) {
+      if(n==0)
+        freq=atof(s);
+      if(n==1)
+        repeats=atoi(s);
+      if(n==2)
+        proto=atoi(s);
+      if(n==3) {
+        rfCode=0;
+        for(bits=0;s[bits]!=0 && bits<32;bits++) {
+          rfCode<<=1L;
+          if(s[bits]=='1')
+            rfCode|=0x1;
+        }
+      }
+      n++;
+    }
+
+    mySwitch.disableReceive();         // Receiver off
+    ELECHOUSE_cc1101.setMHZ(freq);
+    ELECHOUSE_cc1101.SetTx();           // set Transmit on
+    mySwitch.enableTransmit(TX_PIN);   // Transmit on
+    mySwitch.setRepeatTransmit(repeats); // transmission repetitions.
+    mySwitch.setProtocol(proto);        // send Received Protocol
+
+    mySwitch.send(rfCode, bits);      // send 12 bit code
+    mySwitch.disableTransmit();   // set Transmit off
+    ELECHOUSE_cc1101.setMHZ(RX_FREQ);
+    ELECHOUSE_cc1101.SetRx();      // set Receive on
+    mySwitch.enableReceive(RX_PIN);   // Receiver on
+    Serial.print("Sent command raw: ");
+    Serial.print(freq);
+    Serial.print(" - ");
+    Serial.print(proto);
+    Serial.print(" - ");
+    Serial.print(rfCode);
+    Serial.print(" - ");
+    Serial.print(bits);
+    Serial.print("  :  ");
+    for(int b=bits; b>0; b--) {
+      Serial.print(bitRead(rfCode,b-1));
+    }
+    Serial.println();
+    return;
+  }
+*/
+ 
 #ifdef HAMPTONBAY
   hamptonbayMQTT(topic,payloadChar,length);
 #endif
@@ -153,9 +212,7 @@ void reconnectMQTT() {
       // Once connected, publish an announcement...
       client.publish(STATUS_TOPIC, "Online", true);
       // ... and resubscribe
-      client.subscribe(CMND_TOPIC "/restart");
-      client.subscribe(CMND_TOPIC "/reset");
-      client.subscribe(CMND_TOPIC "/ignorerf");
+      client.subscribe(CMND_TOPIC MQTT_CLIENT_NAME "/++");
 #ifdef HAMPTONBAY
       hamptonbayMQTTSub(readMQTT);
 #endif
@@ -267,29 +324,29 @@ void loop() {
 
   // Handle received transmissions
   if (mySwitch.available()) {
-    int long value =  mySwitch.getReceivedValue();        // save received Value
-    int prot = mySwitch.getReceivedProtocol();     // save received Protocol
+    int long rfCode =  mySwitch.getReceivedValue();        // save received Value
+    int proto = mySwitch.getReceivedProtocol();     // save received Protocol
     int bits = mySwitch.getReceivedBitlength();     // save received Bitlength
 
-    Serial.print(prot);
+    Serial.print(proto);
     Serial.print(" - ");
-    Serial.print(value);
+    Serial.print(rfCode);
     Serial.print(" - ");
     Serial.print(bits);
     Serial.print("  :  ");
     for(int b=bits; b>0; b--) {
-      Serial.print(bitRead(value,b-1));
+      Serial.print(bitRead(rfCode,b-1));
     }
     Serial.println();
     
 #ifdef HAMPTONBAY
-    if(!ignorerf) hamptonbayRF(value,prot,bits);
+    if(!ignorerf) hamptonbayRF(rfCode,proto,bits);
 #endif
 #ifdef HAMPTONBAY2
-    if(!ignorerf) hamptonbay2RF(value,prot,bits);
+    if(!ignorerf) hamptonbay2RF(rfCode,proto,bits);
 #endif
 #ifdef FANIMATION
-    if(!ignorerf) fanimationRF(value,prot,bits);
+    if(!ignorerf) fanimationRF(rfCode,proto,bits);
 #endif
 
     mySwitch.resetAvailable();
