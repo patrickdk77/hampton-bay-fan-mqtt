@@ -25,8 +25,9 @@ static unsigned long lasttime;
 
 static void postStateUpdate(int id) {
   char outTopic[100];
+  char percent[10];
   sprintf(outTopic, "%s/%s/direction", STAT_BASE_TOPIC, idStrings[id]);
-  client.publish(outTopic, fans[id].directionState ? "UP":"DOWN", true);
+  client.publish(outTopic, fans[id].directionState ? "REVERSE":"FORWARD", true);
   sprintf(outTopic, "%s/%s/fan", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].fanState ? "ON":"OFF", true);
   sprintf(outTopic, "%s/%s/speed", STAT_BASE_TOPIC, idStrings[id]);
@@ -35,6 +36,32 @@ static void postStateUpdate(int id) {
   client.publish(outTopic, fans[id].lightState ? "ON":"OFF", true);
   sprintf(outTopic, "%s/%s/light2", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].light2State ? "ON":"OFF", true);
+
+  sprintf(outTopic, "%s/%s/percent", STAT_BASE_TOPIC, idStrings[id]);
+  if(fans[id].fanState) {
+    switch(fans[id].fanSpeed) {
+      case FAN_VI:
+        sprintf(percent,"%d",FAN_PCT_VI);
+        break;
+      case FAN_V:
+        sprintf(percent,"%d",FAN_PCT_V);
+        break;
+      case FAN_IV:
+        sprintf(percent,"%d",FAN_PCT_IV);
+        break;
+      case FAN_III:
+        sprintf(percent,"%d",FAN_PCT_III);
+        break;
+      case FAN_II:
+        sprintf(percent,"%d",FAN_PCT_II);
+        break;
+      case FAN_I:
+        sprintf(percent,"%d",FAN_PCT_I);
+        break;
+    }
+  } else
+    sprintf(percent,"%d",FAN_PCT_OFF);
+  client.publish(outTopic, percent, true);
 }
 
 static void transmitState(int fanId, int code) {
@@ -89,6 +116,7 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
   
     // Get ID after the base topic + a slash
     char id[5];
+    int percent;
     memcpy(id, &topic[sizeof(CMND_BASE_TOPIC)], 4);
     id[4] = '\0';
     if(strspn(id, idchars)) {
@@ -98,7 +126,34 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
     
       attr = strtok(topic+sizeof(CMND_BASE_TOPIC)-1 + 5, "/");
 
-      if(strcmp(attr,"fan") ==0) {
+      if(strcmp(attr,"percent") ==0) {
+        percent=atoi(payloadChar);
+        if(percent > FAN_PCT_OVER) {
+          fans[idint].fanState = true;
+          if(percent > (FAN_PCT_V + FAN_PCT_OVER)) {
+            fans[idint].fanSpeed=FAN_VI;
+            transmitState(idint,0x1f);
+          } else if(percent > (FAN_PCT_IV + FAN_PCT_OVER)) {
+            fans[idint].fanSpeed=FAN_V;
+            transmitState(idint,0x1d);
+          } else if(percent > (FAN_PCT_III + FAN_PCT_OVER)) {
+            fans[idint].fanSpeed=FAN_IV;
+            transmitState(idint,0x27);
+          } else if(percent > (FAN_PCT_II + FAN_PCT_OVER)) {
+            fans[idint].fanSpeed=FAN_III;
+            transmitState(idint,0x2f);
+          } else if(percent > (FAN_PCT_I + FAN_PCT_OVER)) {
+            fans[idint].fanSpeed=FAN_II;
+            transmitState(idint,0x35);
+          } else {
+            fans[idint].fanSpeed=FAN_I;
+            transmitState(idint,0x37);
+          }
+        } else {
+          fans[idint].fanState = false;
+          transmitState(idint,0x3d);
+        }
+      } else if(strcmp(attr,"fan") ==0) {
         if(strcmp(payloadChar,"toggle") == 0) {
           if(fans[idint].fanState)
             strcpy(payloadChar,"off");
@@ -255,9 +310,9 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
       } else if(strcmp(attr,"direction") ==0) {
         if(strcmp(payloadChar,"toggle") == 0) {
           if(fans[idint].directionState)
-            strcpy(payloadChar,"down");
+            strcpy(payloadChar,"forward");
           else
-            strcpy(payloadChar,"up");
+            strcpy(payloadChar,"reverse");
         }
         if(strcmp(payloadChar,"up") == 0) {
           fans[idint].directionState = !fans[idint].directionState;
@@ -324,7 +379,7 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
           fans[idint].light2State = false;
         }
       } else if(strcmp(attr,"direction") ==0) {
-        if(strcmp(payloadChar,"up") == 0) {
+        if(strcmp(payloadChar,"reverse") == 0) {
           fans[idint].directionState = true;
         } else {
           fans[idint].directionState = false;

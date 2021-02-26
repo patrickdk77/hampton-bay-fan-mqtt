@@ -1,6 +1,7 @@
 # Hampton Bay/Fanimation/DawnSun Fan MQTT
 
 ## Features
+Added support for percentage based speeds
 Added support for Hampton Bay A25-TX028 rf remotes made by dawnsun
 Added support for fanimation 6speed fan remote controls
 All 3 can operate at the same time
@@ -57,6 +58,8 @@ By default, the state/command topics will be
 ...corresponds to a fan ID of `1000`
 
 ### Home Assistant
+When mqtt support for percentage speeds is supported it will use percent instead of speed cmnd and stat
+
 To use this in Home Assistant as an MQTT Fan and MQTT Light, I'm using this config for hamptonbay
 ```yaml
 fan:

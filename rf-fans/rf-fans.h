@@ -50,6 +50,19 @@
 #define FAN_II  5
 #define FAN_I   6
 
+#define FAN_PCT_HI 100
+#define FAN_PCT_MED 67
+#define FAN_PCT_LOW 33
+#define FAN_PCT_OFF  0
+#define FAN_PCT_VI 100
+#define FAN_PCT_V   83
+#define FAN_PCT_IV  67
+#define FAN_PCT_III 50
+#define FAN_PCT_II  33
+#define FAN_PCT_I   17
+
+#define FAN_PCT_OVER 5 // if asking for 35% it will round down to 33%
+
 #define NO_RF_REPEAT_TIME 300
 
 #define SLEEP_DELAY 50
