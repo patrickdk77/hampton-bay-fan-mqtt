@@ -202,6 +202,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
 #ifdef HAMPTONBAY2
   hamptonbay2MQTT(topic,payloadChar,length);
 #endif
+#ifdef HAMPTONBAY3
+  hamptonbay3MQTT(topic,payloadChar,length);
+#endif
 #ifdef FANIMATION
   fanimationMQTT(topic,payloadChar,length);
 #endif
@@ -221,6 +224,9 @@ void reconnectMQTT() {
 #endif
 #ifdef HAMPTONBAY2
       hamptonbay2MQTTSub(readMQTT);
+#endif
+#ifdef HAMPTONBAY3
+      hamptonbay3MQTTSub(readMQTT);
 #endif
 #ifdef FANIMATION
       fanimationMQTTSub(readMQTT);
@@ -255,6 +261,9 @@ void setup() {
 #endif
 #ifdef HAMPTONBAY2
   hamptonbay2Setup();
+#endif
+#ifdef HAMPTONBAY3
+  hamptonbay3Setup();
 #endif
 #ifdef FANIMATION
   fanimationSetup();
@@ -319,6 +328,9 @@ void loop() {
 #ifdef HAMPTONBAY2
     hamptonbay2SetupEnd();
 #endif
+#ifdef HAMPTONBAY3
+    hamptonbay3SetupEnd();
+#endif
 #ifdef FANIMATION
     fanimationSetupEnd();
 #endif
@@ -347,6 +359,9 @@ void loop() {
 #endif
 #ifdef HAMPTONBAY2
     if(!ignorerf) hamptonbay2RF(rfCode,proto,bits);
+#endif
+#ifdef HAMPTONBAY3
+    if(!ignorerf) hamptonbay3RF(rfCode,proto,bits);
 #endif
 #ifdef FANIMATION
     if(!ignorerf) fanimationRF(rfCode,proto,bits);

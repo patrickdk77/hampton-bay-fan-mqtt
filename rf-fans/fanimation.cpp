@@ -317,7 +317,7 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
           else
             strcpy(payloadChar,"reverse");
         }
-        if(strcmp(payloadChar,"up") == 0) {
+        if(strcmp(payloadChar,"reverse") == 0) {
           fans[idint].directionState = !fans[idint].directionState;
           transmitState(idint,0x3b);
         } else {

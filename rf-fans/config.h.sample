@@ -18,11 +18,15 @@
 // Compile in Hampton Bay (dawnsun) A25-TX028 (304.015mhz approx)
 #define HAMPTONBAY2
 
+// Compile in Hampton Bay (a few of them) UC-7078TR (303.95mhz approx)
+#define HAMPTONBAY3
+
 // Compile in Fanimation Slinger and HarberBreeze (303.870mhz approx)
 #define FANIMATION
 
 #define HAMPTONBAY_BASE_TOPIC "hamptonbay"
 #define HAMPTONBAY2_BASE_TOPIC "hamptonbay2"
+#define HAMPTONBAY3_BASE_TOPIC "hamptonbay3"
 #define FANIMATION_BASE_TOPIC "fanimation"
 
 // Doorbell pins, define to use
