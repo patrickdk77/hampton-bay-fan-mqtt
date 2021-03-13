@@ -24,8 +24,6 @@ static int long lastvalue;
 static unsigned long lasttime;
 
 static void postStateUpdate(int id) {
-  char outTopic[100];
-  char percent[10];
   sprintf(outTopic, "%s/%s/direction", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].directionState ? "REVERSE":"FORWARD", true);
   sprintf(outTopic, "%s/%s/fan", STAT_BASE_TOPIC, idStrings[id]);
@@ -38,30 +36,31 @@ static void postStateUpdate(int id) {
   client.publish(outTopic, fans[id].light2State ? "ON":"OFF", true);
 
   sprintf(outTopic, "%s/%s/percent", STAT_BASE_TOPIC, idStrings[id]);
+  *outPercent='\0';
   if(fans[id].fanState) {
     switch(fans[id].fanSpeed) {
       case FAN_VI:
-        sprintf(percent,"%d",FAN_PCT_VI);
+        sprintf(outPercent,"%d",FAN_PCT_VI);
         break;
       case FAN_V:
-        sprintf(percent,"%d",FAN_PCT_V);
+        sprintf(outPercent,"%d",FAN_PCT_V);
         break;
       case FAN_IV:
-        sprintf(percent,"%d",FAN_PCT_IV);
+        sprintf(outPercent,"%d",FAN_PCT_IV);
         break;
       case FAN_III:
-        sprintf(percent,"%d",FAN_PCT_III);
+        sprintf(outPercent,"%d",FAN_PCT_III);
         break;
       case FAN_II:
-        sprintf(percent,"%d",FAN_PCT_II);
+        sprintf(outPercent,"%d",FAN_PCT_II);
         break;
       case FAN_I:
-        sprintf(percent,"%d",FAN_PCT_I);
+        sprintf(outPercent,"%d",FAN_PCT_I);
         break;
     }
   } else
-    sprintf(percent,"%d",FAN_PCT_OFF);
-  client.publish(outTopic, percent, true);
+    sprintf(outPercent,"%d",FAN_PCT_OFF);
+  client.publish(outTopic, outPercent, true);
 }
 
 static void transmitState(int fanId, int code) {
@@ -126,7 +125,7 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
     
       attr = strtok(topic+sizeof(CMND_BASE_TOPIC)-1 + 5, "/");
 
-      if(strcmp(attr,"percent") ==0) {
+      if(strcmp(attr,"percent") == 0) {
         percent=atoi(payloadChar);
         if(percent > FAN_PCT_OVER) {
           fans[idint].fanState = true;
@@ -153,7 +152,7 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
           fans[idint].fanState = false;
           transmitState(idint,0x3d);
         }
-      } else if(strcmp(attr,"fan") ==0) {
+      } else if(strcmp(attr,"fan") == 0) {
         if(strcmp(payloadChar,"toggle") == 0) {
           if(fans[idint].fanState)
             strcpy(payloadChar,"off");
@@ -209,8 +208,10 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
               fans[idint].fanSpeed=FAN_VI;
               break;
             default:
-              if(fans[idint].fanSpeed>FAN_VI)
-                fans[idint].fanSpeed--;
+              if(fans[idint].fanSpeed<FAN_VI)
+                fans[idint].fanSpeed=FAN_VI;
+              if(fans[idint].fanSpeed>FAN_I)
+                fans[idint].fanSpeed=FAN_I;
               break;
           }
         } else if(strcmp(payloadChar,"-") ==0) {
@@ -235,8 +236,10 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
               fans[idint].fanSpeed=FAN_V;
               break;
             default:
+              if(fans[idint].fanSpeed<FAN_VI)
+                fans[idint].fanSpeed=FAN_VI;
               if(fans[idint].fanSpeed>FAN_I)
-                fans[idint].fanSpeed++;
+                fans[idint].fanSpeed=FAN_I;
               break;
           }
         } else if(strcmp(payloadChar,"high") ==0) {

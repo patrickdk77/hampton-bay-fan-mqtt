@@ -30,6 +30,9 @@ const char *idStrings[16] = {
 
 char idchars[] = "01";
 
+char outTopic[100];
+char outPercent[5];
+
 static unsigned long reconnectDelay=0;
 static unsigned long setupDelay=0;
 static boolean readMQTT=true;
@@ -104,30 +107,29 @@ void setup_wifi() {
 
 void callback(char* topic, byte* payload, unsigned int length) {
   char payloadChar[length + 1];
-  sprintf(payloadChar, "%s", payload);
-  payloadChar[length] = '\0';
+//  sprintf(payloadChar, "%s", payload);
+//  payloadChar[length] = '\0';
 
   // Convert payload to lowercase
-  for(unsigned i=0; payloadChar[i]; i++) {
-    payloadChar[i] = tolower(payloadChar[i]);
+  for(unsigned i=0; payload[i] && i<length; i++) {
+    payloadChar[i] = tolower(payload[i]);
   }
+  payloadChar[length]='\0';
 
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
-  for (unsigned i = 0; i < length; i++) {
-    Serial.print(payloadChar);
-  }
+  Serial.print(payloadChar);
   Serial.println();
   
   if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/restart", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/restart")-1) == 0) {
     ESP.restart();
     return;
-  }
+  } else 
   if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/reset", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/reset")-1) == 0) {
     ESP.reset();
     return;
-  }
+  } else
   if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/ignorerf", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/ignorerf")-1) == 0) {
     if(strcmp(payloadChar,"on") == 0)
       ignorerf=true;
@@ -135,7 +137,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       ignorerf=false;
     client.publish(STAT_TOPIC MQTT_CLIENT_NAME "/ignorerf", ignorerf ? "ON":"OFF", true);
     return;
-  }
+  } else
   if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/txrcswitch", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/txrcswitch")-1) == 0) {
     unsigned long rfCode=0;
     unsigned proto=11;
@@ -373,7 +375,6 @@ void loop() {
     if(digitalRead(DOORBELL1)==LOW) {
 #endif
       if(doorbell1_milli==0) {
-        char outTopic[100];
         doorbell1_milli=t;
         sprintf(outTopic, "%sdoorbell/1/state", STAT_TOPIC);
         client.publish(outTopic, "ON", true);
@@ -387,7 +388,6 @@ void loop() {
     if(digitalRead(DOORBELL1)==HIGH) {
 #endif
       if((t-doorbell1_milli)>DOORBELL_COOLDOWN) {
-        char outTopic[100];
         doorbell1_milli=0;
         doorbell1=0;
         sprintf(outTopic, "%sdoorbell/1/state", STAT_TOPIC);
@@ -411,7 +411,6 @@ void loop() {
     if(digitalRead(DOORBELL2)==LOW) {
 #endif
       if(doorbell2_milli==0) {
-        char outTopic[100];
         doorbell2_milli=t;
         sprintf(outTopic, "%sdoorbell/2/state", STAT_TOPIC);
         client.publish(outTopic, "ON", true);
@@ -425,7 +424,6 @@ void loop() {
     if(digitalRead(DOORBELL2)==HIGH) {
 #endif
       if((t-doorbell2_milli)>DOORBELL_COOLDOWN) {
-        char outTopic[100];
         doorbell2_milli=0;
         doorbell2=0;
         sprintf(outTopic, "%sdoorbell/2/state", STAT_TOPIC);
@@ -449,7 +447,6 @@ void loop() {
     if(digitalRead(DOORBELL3)==LOW) {
 #endif
       if(doorbell3_milli==0) {
-        char outTopic[100];
         doorbell3_milli=t;
         sprintf(outTopic, "%sdoorbell/3/state", STAT_TOPIC);
         client.publish(outTopic, "ON", true);
@@ -463,7 +460,6 @@ void loop() {
     if(digitalRead(DOORBELL3)==HIGH) {
 #endif
       if((t-doorbell3_milli)>DOORBELL_COOLDOWN) {
-        char outTopic[100];
         doorbell3_milli=0;
         doorbell3=0;
         sprintf(outTopic, "%sdoorbell/3/state", STAT_TOPIC);

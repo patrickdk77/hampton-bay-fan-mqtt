@@ -20,31 +20,30 @@
 static fan fans[16];
 
 static void postStateUpdate(int id) {
-  char outTopic[100];
-  char percent[10];
   sprintf(outTopic, "%s/%s/fan", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].fanState ? "ON":"OFF", true);
   sprintf(outTopic, "%s/%s/speed", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fanStateTable[fans[id].fanSpeed], true);
   sprintf(outTopic, "%s/%s/light", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].lightState ? "ON":"OFF", true);
-  sprintf(outTopic, "%s/%s/percent", STAT_BASE_TOPIC, idStrings[id]);
 
+  sprintf(outTopic, "%s/%s/percent", STAT_BASE_TOPIC, idStrings[id]);
+  *outPercent='\0';
   if(fans[id].fanState) {
     switch(fans[id].fanSpeed) {
       case FAN_HI:
-        sprintf(percent,"%d",FAN_PCT_HI);
+        sprintf(outPercent,"%d",FAN_PCT_HI);
         break;
       case FAN_MED:
-        sprintf(percent,"%d",FAN_PCT_MED);
+        sprintf(outPercent,"%d",FAN_PCT_MED);
         break;
       case FAN_LOW:
-        sprintf(percent,"%d",FAN_PCT_LOW);
+        sprintf(outPercent,"%d",FAN_PCT_LOW);
         break;
     }
   } else
-    sprintf(percent,"%d",FAN_PCT_OFF);
-  client.publish(outTopic, percent, true);
+    sprintf(outPercent,"%d",FAN_PCT_OFF);
+  client.publish(outTopic, outPercent, true);
 }
 
 static void transmitState(int fanId) {

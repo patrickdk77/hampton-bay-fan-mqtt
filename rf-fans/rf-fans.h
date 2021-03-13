@@ -56,10 +56,10 @@
 #define FAN_PCT_OFF  0
 #define FAN_PCT_VI 100
 #define FAN_PCT_V   83
-#define FAN_PCT_IV  67
+#define FAN_PCT_IV  66
 #define FAN_PCT_III 50
 #define FAN_PCT_II  33
-#define FAN_PCT_I   17
+#define FAN_PCT_I   16
 
 #define FAN_PCT_OVER 5 // if asking for 35% it will round down to 33%
 
@@ -86,6 +86,8 @@ extern const char *fanStateTable[];
 extern const byte dipToRfIds[16];
 extern const char *idStrings[16];
 extern char idchars[];
+extern char outTopic[100];
+extern char outPercent[5];
 
 #ifdef DOORBELL1
 #ifndef DOORBELL_INT
