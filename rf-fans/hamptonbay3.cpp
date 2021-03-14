@@ -10,8 +10,12 @@
 
 #define SUBSCRIBE_TOPIC_STAT_SETUP STAT_BASE_TOPIC "/#"
 
-#define TX_FREQ 303.95 // UC7078TR Hampton Bay made by Chia Wei Electric
-            
+#ifndef HAMPTONBAY3_TX_FREQ
+  #define TX_FREQ 304.95 // UC7078TR Hampton Bay made by Chia Wei Electric
+#else
+  #define TX_FREQ HAMPTONBAY3_TX_FREQ
+#endif
+
 // RC-switch settings
 #define RF_PROTOCOL 13
 #define RF_REPEATS  8 

@@ -10,8 +10,12 @@
 
 #define SUBSCRIBE_TOPIC_STAT_SETUP STAT_BASE_TOPIC "/#"
 
-#define TX_FREQ 304.015 // a25-tx028 Hampton
-            
+#ifndef HAMPTONBAY2_TX_FREQ
+  #define TX_FREQ 304.015 // a25-tx028 Hampton
+#else
+  #define TX_FREQ HAMPTONBAY2_TX_FREQ
+#endif
+
 // RC-switch settings
 #define RF_PROTOCOL 14
 #define RF_REPEATS  8 

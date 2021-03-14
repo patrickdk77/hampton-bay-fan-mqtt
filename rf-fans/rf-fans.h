@@ -39,7 +39,9 @@
 #endif 
 
 // Set CC1101 frequency
-#define RX_FREQ 303.870 // Middle ground, transmitters are very wide branded and picks up all of them
+#ifndef RX_REEQ
+  #define RX_FREQ 303.870 // Middle ground, transmitters are very wide branded and picks up all of them
+#endif
 
 // Define fan states
 #define FAN_HI  1

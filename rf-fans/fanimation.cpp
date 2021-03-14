@@ -10,8 +10,12 @@
 
 #define SUBSCRIBE_TOPIC_STAT_SETUP STAT_BASE_TOPIC "/#"
 
-#define TX_FREQ 303.870 // Fanimation 
-            
+#ifndef FANIMATION_TX_FREQ
+  #define TX_FREQ 303.870 // Fanimation 
+#else
+  #define TX_FREQ FANIMATION_TX_FREQ
+#endif
+
 // RC-switch settings
 //#define RF_PROTOCOL 11 // For Federigo
 #define RF_PROTOCOL 13
