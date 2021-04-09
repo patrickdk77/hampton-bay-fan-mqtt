@@ -5,6 +5,10 @@ const char *fanStateTable[] = {
   "off", "high", "high", "medium", "medium", "low", "low"
 };
 
+const char *fanFullStateTable[] = {
+  "off", "VI", "V", "IV", "III", "II", "I"
+};
+
 RCSwitch mySwitch = RCSwitch();
 WiFiClient espClient;
 PubSubClient client(espClient);

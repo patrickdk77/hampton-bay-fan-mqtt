@@ -24,6 +24,9 @@
 // Compile in Fanimation Slinger and HarberBreeze (303.870mhz approx)
 #define FANIMATION
 
+// Use 6 speeds for fanimation Slinger
+//#define FANIMATION6
+
 #define HAMPTONBAY_BASE_TOPIC "hamptonbay"
 #define HAMPTONBAY2_BASE_TOPIC "hamptonbay2"
 #define HAMPTONBAY3_BASE_TOPIC "hamptonbay3"

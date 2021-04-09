@@ -70,12 +70,14 @@ fan:
   payload_not_available: "Offline"
   state_topic: "stat/hamptonbay/1000/fan"
   command_topic: "cmnd/hamptonbay/1000/fan"
-  speed_state_topic: "stat/hamptonbay/1000/speed"
-  speed_command_topic: "cmnd/hamptonbay/1000/speed"
-  speeds:
-    - low
-    - medium
-    - high
+  percentage_state_topic: "stat/hamptonbay/1000/percent"
+  percentage_command_topic: "cmnd/hamptonbay/1000/percent"
+  preset_mode_state_topic: "stat/hamptonbay/1000/speed"
+  preset_mode_command_topic: "cmnd/hamptonbay/1000/speed"
+  preset_modes:
+    - "low"
+    - "medium"
+    - "high"
 
 light:
 - platform: mqtt
@@ -97,9 +99,11 @@ fan:
   payload_not_available: "Offline"
   state_topic: "stat/fanimation/1000/fan"
   command_topic: "cmnd/fanimation/1000/fan"
-  speed_state_topic: "stat/fanimation/1000/speed"
-  speed_command_topic: "cmnd/fanimation/1000/speed"
-  speeds:
+  percentage_state_topic: "stat/fanimation/1000/percent"
+  percentage_command_topic: "cmnd/fanimation/1000/percent"
+  preset_mode_state_topic: "stat/fanimation/1000/speed"
+  preset_mode_command_topic: "cmnd/fanimation/1000/speed"
+  preset_modes:
     - low
     - medium
     - high
@@ -114,7 +118,7 @@ light:
   command_topic: "cmnd/fanimation/1000/light"
 ```
 
-For Fanimation
+For Fanimation (can use low/medium/high, or if FANIMATION6 is defined can also use all 6 speeds)
 ```yaml
 fan:
 - platform: mqtt
@@ -124,12 +128,17 @@ fan:
   payload_not_available: "Offline"
   state_topic: "stat/fanimation/1000/fan"
   command_topic: "cmnd/fanimation/1000/fan"
-  speed_state_topic: "stat/fanimation/1000/speed"
-  speed_command_topic: "cmnd/fanimation/1000/speed"
-  speeds:
-    - low
-    - medium
-    - high
+  percentage_state_topic: "stat/fanimation/1000/percent"
+  percentage_command_topic: "cmnd/fanimation/1000/percent"
+  preset_mode_state_topic: "stat/fanimation/1000/speed"
+  preset_mode_command_topic: "cmnd/fanimation/1000/speed"
+  preset_modes:
+    - I
+    - II
+    - III
+    - IV
+    - V
+    - VI
 
 light:
 - platform: mqtt

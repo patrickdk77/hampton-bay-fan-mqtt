@@ -88,6 +88,7 @@ extern WiFiClient espClient;
 extern PubSubClient client;
 
 extern const char *fanStateTable[];
+extern const char *fanFullStateTable[];
 extern const byte dipToRfIds[16];
 extern const char *idStrings[16];
 extern char idchars[];

@@ -33,7 +33,11 @@ static void postStateUpdate(int id) {
   sprintf(outTopic, "%s/%s/fan", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].fanState ? "ON":"OFF", true);
   sprintf(outTopic, "%s/%s/speed", STAT_BASE_TOPIC, idStrings[id]);
+#ifndef FANIMATION6
   client.publish(outTopic, fanStateTable[fans[id].fanSpeed], true);
+#else
+  client.publish(outTopic, fanFullStateTable[fans[id].fanSpeed], true);
+#endif
   sprintf(outTopic, "%s/%s/light", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].lightState ? "ON":"OFF", true);
   sprintf(outTopic, "%s/%s/light2", STAT_BASE_TOPIC, idStrings[id]);
