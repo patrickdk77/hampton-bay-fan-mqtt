@@ -237,10 +237,11 @@ void reconnectMQTT() {
 #endif
       setupDelay=millis()+5000;
       readMQTT=false;
-  } else {
+      reconnectDelay=0;
+    } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
+      Serial.println(" try again in 18 seconds");
     }
 }
 
@@ -377,7 +378,10 @@ void loop() {
   if (!client.connected()) {
     if(reconnectDelay<t) {
       reconnectMQTT();
-      reconnectDelay=millis()+5000;
+      if(reconnectDelay>0)
+        reconnectDelay=millis()+18000;
+      else
+        reconnectDelay=millis()+6000;
     }
   } else {
     client.loop();
