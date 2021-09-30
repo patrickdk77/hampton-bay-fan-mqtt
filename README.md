@@ -1,6 +1,8 @@
 # Hampton Bay/Fanimation/DawnSun Fan MQTT
 
 ## Features
+* Added rc codes received to mqtt
+* reboot of disconnected from mqtt for over 30min
 * Added support for percentage based speeds
 * Added support for Hampton Bay A25-TX028 rf remotes made by dawnsun
 * Added support for fanimation 6speed fan remote controls

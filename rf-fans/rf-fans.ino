@@ -35,8 +35,14 @@ const char *idStrings[16] = {
 char idchars[] = "01";
 
 char outTopic[100];
-char outPercent[5];
+char outPercent[100];
 
+#ifdef HEAP_DELAY_SECONDS
+static long heapSize=0;
+static unsigned long heapDelay=0;
+#endif
+
+static unsigned long reconnectReboot=0;
 static unsigned long reconnectDelay=0;
 static unsigned long setupDelay=0;
 static boolean readMQTT=true;
@@ -348,6 +354,10 @@ void loop() {
     unsigned proto = mySwitch.getReceivedProtocol();     // save received Protocol
     unsigned bits = mySwitch.getReceivedBitlength();     // save received Bitlength
 
+    sprintf(outTopic, "%s%s/rfreceived", STAT_TOPIC, MQTT_CLIENT_NAME);
+    sprintf(outPercent,"{proto:\"%u\", rfCode:\"%x%x\", bitlength:\"%u\"}",proto, (unsigned int)(rfCode>>16), (unsigned int)(rfCode&&0xffff), bits);
+    client.publish(outTopic, outPercent, false);
+
     Serial.print(proto);
     Serial.print(" - ");
     Serial.print(rfCode);
@@ -376,19 +386,43 @@ void loop() {
   }
   
   if (!client.connected()) {
+#ifdef MQTT_REBOOT_SECONDS
+    if(reconnectReboot==0)
+      reconnectReboot=t+(MQTT_REBOOT_SECONDS*1000);
+#endif
     if(reconnectDelay<t) {
       reconnectMQTT();
       if(reconnectDelay>0)
         reconnectDelay=millis()+18000;
       else
         reconnectDelay=millis()+6000;
+#ifdef MQTT_REBOOT_SECONDS
+      if(reconnectReboot<t) { // disconnected from mqtt too long, reboot
+        ESP.restart();
+      }
+#endif
     }
   } else {
+    if(reconnectReboot>0)
+      reconnectReboot=0;
     client.loop();
   }
 
   ArduinoOTA.handle();
   
+#ifdef HEAP_DELAY_SECONDS
+  if(heapDelay<t) {
+    long hs = ESP.getFreeHeap();
+    heapDelay=t+(HEAP_DELAY_SECONDS*1000);
+    if(heapSize != hs) {
+      heapSize=hs;
+      sprintf(outTopic, "%s%s/heapsize", STAT_TOPIC, MQTT_CLIENT_NAME);
+      ltoa(heapSize,outPercent,10);
+      client.publish(outTopic, outPercent, false);
+    }
+  }
+#endif
+
 #ifdef DOORBELL1
   if(doorbell1==0) {
 #ifdef DOORBELL_INT

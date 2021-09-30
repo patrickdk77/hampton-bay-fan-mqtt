@@ -72,6 +72,9 @@
 
 #define SLEEP_DELAY 50
 
+#define HEAP_DELAY_SECONDS 60
+#define MQTT_REBOOT_SECONDS 2000
+
 struct fan
 {
   bool powerState;
@@ -93,7 +96,7 @@ extern const byte dipToRfIds[16];
 extern const char *idStrings[16];
 extern char idchars[];
 extern char outTopic[100];
-extern char outPercent[5];
+extern char outPercent[100];
 
 #ifdef DOORBELL1
 #ifndef DOORBELL_INT
