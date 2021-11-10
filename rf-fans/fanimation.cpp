@@ -297,11 +297,11 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
           else
             strcpy(payloadChar,"on");
         }
-        if(strcmp(payloadChar,"on") == 0) {
-          fans[idint].lightState = !fans[idint].lightState;
+        if(strcmp(payloadChar,"on") == 0 && !fans[idint].lightState) {
+          fans[idint].lightState = true;
           transmitState(idint,0x3e);
-        } else {
-          fans[idint].lightState = !fans[idint].lightState;
+        } else if (fans[idint].lightState) {
+          fans[idint].lightState = false;
           transmitState(idint,0x3e);
         }
       } else if(strcmp(attr,"light2") ==0) {
@@ -311,11 +311,11 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
           else
             strcpy(payloadChar,"on");
         }
-        if(strcmp(payloadChar,"on") == 0) {
-          fans[idint].light2State = !fans[idint].light2State;
+        if(strcmp(payloadChar,"on") == 0 && !fans[idint].light2State) {
+          fans[idint].light2State = true;
           transmitState(idint,0x36);
-        } else {
-          fans[idint].light2State = !fans[idint].light2State;
+        } else if (fans[idint].light2State) {
+          fans[idint].light2State = false;
           transmitState(idint,0x36);
         }
       } else if(strcmp(attr,"direction") ==0) {
@@ -325,11 +325,11 @@ void fanimationMQTT(char* topic, char* payloadChar, unsigned int length) {
           else
             strcpy(payloadChar,"reverse");
         }
-        if(strcmp(payloadChar,"reverse") == 0) {
-          fans[idint].directionState = !fans[idint].directionState;
+        if(strcmp(payloadChar,"reverse") == 0 && !fans[idint].directionState) {
+          fans[idint].directionState = true;
           transmitState(idint,0x3b);
-        } else {
-          fans[idint].directionState = !fans[idint].directionState;
+        } else if (fans[idint].directionState) {
+          fans[idint].directionState = false;
           transmitState(idint,0x3b);
         }
       }

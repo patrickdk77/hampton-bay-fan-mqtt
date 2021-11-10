@@ -213,10 +213,10 @@ void hamptonbay3MQTT(char* topic, char* payloadChar, unsigned int length) {
           else
             strcpy(payloadChar,"on");
         }
-        if(strcmp(payloadChar,"on") == 0) {
+        if(strcmp(payloadChar,"on") == 0 && !fans[idint].lightState) {
           fans[idint].lightState = true;
           transmitState(idint,0x7f);
-        } else {
+        } else if (fans[idint].lightState) {
           fans[idint].lightState = false;
           transmitState(idint,0x7f);
         }
@@ -227,11 +227,11 @@ void hamptonbay3MQTT(char* topic, char* payloadChar, unsigned int length) {
           else
             strcpy(payloadChar,"reverse");
         }
-        if(strcmp(payloadChar,"reverse") == 0) {
-          fans[idint].directionState = !fans[idint].directionState;
+        if(strcmp(payloadChar,"reverse") == 0 && !fans[idint].directionState) {
+          fans[idint].directionState = true;
           transmitState(idint,0xef);
-        } else {
-          fans[idint].directionState = !fans[idint].directionState;
+        } else if(fans[idint].directionState) {
+          fans[idint].directionState = false;
           transmitState(idint,0xef);
         }
       }
