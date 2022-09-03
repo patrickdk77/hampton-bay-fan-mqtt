@@ -13,6 +13,9 @@
 #ifdef HAMPTONBAY3
   #include "hamptonbay3.h"
 #endif
+#ifdef HAMPTONBAY4
+  #include "hamptonbay4.h"
+#endif
 #ifdef HAMPTONBAY2
   #include "hamptonbay2.h"
 #endif
