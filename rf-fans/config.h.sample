@@ -12,6 +12,9 @@
 #define MQTT_PASS "PASS"
 #define MQTT_CLIENT_NAME HOSTNAME
 
+#define STATUS_LED
+#define STATUS_LED_PIN 3
+
 // Compile in Hampton Bay FAN-9T (303.631mhz)
 #define HAMPTONBAY
 

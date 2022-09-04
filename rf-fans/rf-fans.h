@@ -23,6 +23,16 @@
   #include "fanimation.h"
 #endif
 
+#ifdef STATUS_LED
+  #include "EasyLed.h"
+#endif
+
+#ifdef DHT_SENSOR
+  #include <Adafruit_Sensor.h>
+  #include <DHT.h>
+  #include <DHT_U.h>
+#endif
+
 #define TELE_TOPIC "tele/"
 #define CMND_TOPIC "cmnd/"
 #define STAT_TOPIC "stat/"
