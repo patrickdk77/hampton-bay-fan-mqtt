@@ -92,7 +92,8 @@ static const RCSwitch::Protocol PROGMEM proto[] = {
   { 270, { 36,  1 }, {  1,  2 }, {  2,  1 }, true },     // protocol 11 (HT12E)
   { 320, { 36,  1 }, {  1,  2 }, {  2,  1 }, true },     // protocol 12 (SM5212)
   { 346, { 35,  1 }, {  1,  2 }, {  2,  1 }, true },     // protocol 13 (M1E-N 182khz, fanimation)
-  { 400, { 34,  1 }, {  1,  2 }, {  2,  1 }, true }      // protocol 14 (ax25-tx028, hamptonbay/dawnsun)
+  { 400, { 34,  1 }, {  1,  2 }, {  2,  1 }, true },     // protocol 14 (ax25-tx028, hamptonbay/dawnsun)
+  { 361, { 35,  2 }, {  1,  2 }, {  2, 1  }, true }      // protocol 15 (fan-hd 201946)
 };
 
 enum {

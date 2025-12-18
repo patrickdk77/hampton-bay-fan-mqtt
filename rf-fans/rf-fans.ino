@@ -15,6 +15,17 @@ PubSubClient client(espClient);
 
 WiFiServer TelnetServer(8266);
 
+#ifdef STATUS_LED
+EasyLed led(STATUS_LED_PIN, EasyLed::ActiveLevel::High);
+#endif
+
+#ifdef DHT_SENSOR
+DHT_Unified dht(DHT_SENSOR_PIN, DHT_TYPE);
+unsigned long lastTempRead = 0;
+char dhtTopic[100];
+char outDhtValue[100];
+#endif
+
 // The ID returned from the RF code appears to be inversed and reversed for hamptonbay
 //   e.g. a dip setting of on off off off (1000) yields 1110
 // Convert between IDs from MQTT from dip switch settings and what is used in the RF codes
@@ -104,6 +115,9 @@ void setup_wifi() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    #ifdef STATUS_LED
+    led.flash(2);
+    #endif
   }
 
   WiFi.setAutoReconnect(true);
@@ -131,6 +145,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("] ");
   Serial.print(payloadChar);
   Serial.println();
+  #ifdef STATUS_LED
+  led.flash(3);
+  #endif  
   
   if(strncmp(topic, CMND_TOPIC MQTT_CLIENT_NAME "/restart", sizeof(CMND_TOPIC MQTT_CLIENT_NAME "/restart")-1) == 0) {
     ESP.restart();
@@ -215,6 +232,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
 #ifdef HAMPTONBAY3
   hamptonbay3MQTT(topic,payloadChar,length);
 #endif
+#ifdef HAMPTONBAY4
+  hamptonbay4MQTT(topic,payloadChar,length);
+#endif
 #ifdef FANIMATION
   fanimationMQTT(topic,payloadChar,length);
 #endif
@@ -238,6 +258,9 @@ void reconnectMQTT() {
 #ifdef HAMPTONBAY3
       hamptonbay3MQTTSub(readMQTT);
 #endif
+#ifdef HAMPTONBAY4
+      hamptonbay4MQTTSub(readMQTT);
+#endif
 #ifdef FANIMATION
       fanimationMQTTSub(readMQTT);
 #endif
@@ -248,6 +271,10 @@ void reconnectMQTT() {
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 18 seconds");
+      #ifdef STATUS_LED
+      led.flash(4);
+      #endif  
+
     }
 }
 
@@ -267,6 +294,10 @@ void setup() {
   TelnetServer.begin();
   Serial.begin(115200);
 
+    #ifdef STATUS_LED
+    led.off();
+    #endif   
+
 #ifdef HAMPTONBAY
   hamptonbaySetup();
 #endif
@@ -275,6 +306,9 @@ void setup() {
 #endif
 #ifdef HAMPTONBAY3
   hamptonbay3Setup();
+#endif
+#ifdef HAMPTONBAY4
+  hamptonbay4Setup();
 #endif
 #ifdef FANIMATION
   fanimationSetup();
@@ -292,21 +326,34 @@ void setup() {
 
   mySwitch.enableReceive(RX_PIN);
 
+  #ifdef DHT_SENSOR
+  dht.begin();
+  #endif
+
   ArduinoOTA.setHostname((const char *)HOSTNAME);
   if(sizeof(OTA_PASS)>0)
     ArduinoOTA.setPassword((const char *)OTA_PASS);
 
   ArduinoOTA.onStart([]() {
     Serial.println("OTA Start");
+    #ifdef STATUS_LED
+    led.flash(6);
+    #endif      
   });
   ArduinoOTA.onEnd([]() {
     Serial.println("OTA End");
     Serial.println("Rebooting...");
+    #ifdef STATUS_LED
+    led.flash(6);
+    #endif      
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\r\n", (progress / (total / 100)));
   });
   ArduinoOTA.onError([](ota_error_t error) {
+    #ifdef STATUS_LED
+    led.flash(7);
+    #endif      
     Serial.printf("Error[%u]: ", error);
     if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
     else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
@@ -342,6 +389,9 @@ void loop() {
 #ifdef HAMPTONBAY3
     hamptonbay3SetupEnd();
 #endif
+#ifdef HAMPTONBAY4
+    hamptonbay4SetupEnd();
+#endif
 #ifdef FANIMATION
     fanimationSetupEnd();
 #endif
@@ -357,11 +407,15 @@ void loop() {
     sprintf(outTopic, "%s%s/rfreceived", STAT_TOPIC, MQTT_CLIENT_NAME);
     sprintf(outPercent,"{proto:\"%u\", rfCode:\"%x%x\", bitlength:\"%u\"}",proto, (unsigned int)(rfCode>>16), (unsigned int)(rfCode&&0xffff), bits);
     client.publish(outTopic, outPercent, false);
+    #ifdef STATUS_LED
+    led.flash(1);
+    #endif  
 
+    Serial.print("Received RF Proto: ");
     Serial.print(proto);
-    Serial.print(" - ");
+    Serial.print(" - Code: ");
     Serial.print(rfCode);
-    Serial.print(" - ");
+    Serial.print(" - Bits: ");
     Serial.print(bits);
     Serial.print("  :  ");
     for(unsigned b=bits; b>0; b--) {
@@ -378,12 +432,18 @@ void loop() {
 #ifdef HAMPTONBAY3
     if(!ignorerf) hamptonbay3RF(rfCode,proto,bits);
 #endif
+#ifdef HAMPTONBAY4
+    if(!ignorerf) hamptonbay4RF(rfCode,proto,bits);
+#endif
 #ifdef FANIMATION
     if(!ignorerf) fanimationRF(rfCode,proto,bits);
 #endif
 
     mySwitch.resetAvailable();
   }
+  //  else {
+  //   Serial.println("RCSwitch not available!");
+  // }
   
   if (!client.connected()) {
 #ifdef MQTT_REBOOT_SECONDS
@@ -405,7 +465,9 @@ void loop() {
   } else {
     if(reconnectReboot>0)
       reconnectReboot=0;
+    //Serial.println("Starting MQTT loop...");      
     client.loop();
+    //Serial.println("Exiting MQTT loop...");      
   }
 
   ArduinoOTA.handle();
@@ -530,6 +592,44 @@ void loop() {
     }
   }
 #endif
+
+#ifdef DHT_SENSOR
+  //DHT_TEMP_SECONDS
+  if (lastTempRead == 0 || (millis()-lastTempRead > DHT_TEMP_SECONDS*1000))
+  {
+    lastTempRead = millis();
+    // Get temperature event and print its value.
+    sensors_event_t event;
+    dht.temperature().getEvent(&event);
+    if (isnan(event.temperature)) {
+      Serial.println(F("Error reading temperature!"));
+      lastTempRead = 0;
+    }
+    else {
+      Serial.print(F("Temperature: "));
+      Serial.print(event.temperature);
+      Serial.println(F("°C"));
+      sprintf(dhtTopic, "%s%s/temperature", STAT_TOPIC, MQTT_CLIENT_NAME);
+      dtostrf(event.temperature,0,2,outDhtValue);
+      client.publish(dhtTopic, outDhtValue, false);      
+    }
+    // Get humidity event and print its value.
+    dht.humidity().getEvent(&event);
+    if (isnan(event.relative_humidity)) {
+      Serial.println(F("Error reading humidity!"));
+      lastTempRead = 0;
+    }
+    else {
+      Serial.print(F("Humidity: "));
+      Serial.print(event.relative_humidity);
+      Serial.println(F("%"));
+      sprintf(dhtTopic, "%s%s/humidity", STAT_TOPIC, MQTT_CLIENT_NAME);
+      dtostrf(event.relative_humidity,0,2,outDhtValue);
+      client.publish(dhtTopic, outDhtValue, false);      
+    }
+  }
+
+#endif          
 
   unsigned long looptime = millis()-t;
   if(looptime<SLEEP_DELAY)
