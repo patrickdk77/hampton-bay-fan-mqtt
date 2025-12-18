@@ -106,6 +106,8 @@ void hamptonbay3MQTT(char* topic, char* payloadChar, unsigned int length) {
       // Split by slash after ID in topic to get attribute and action
     
       attr = strtok(topic+sizeof(CMND_BASE_TOPIC)-1 + 5, "/");
+      
+      if(attr == NULL) return;
 
       if(strcmp(attr,"percent") ==0) {
         percent=atoi(payloadChar);
