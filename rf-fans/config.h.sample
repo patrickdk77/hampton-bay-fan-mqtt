@@ -12,6 +12,9 @@
 #define MQTT_PASS "PASS"
 #define MQTT_CLIENT_NAME HOSTNAME
 
+#define STATUS_LED
+#define STATUS_LED_PIN 3
+
 // Compile in Hampton Bay FAN-9T (303.631mhz)
 #define HAMPTONBAY
 
@@ -20,6 +23,9 @@
 
 // Compile in Hampton Bay (a few of them) UC-7078TR (303.95mhz approx)
 #define HAMPTONBAY3
+
+// Compile in Hampton Bay  UC-7078TR Variant (303.95mhz approx)
+#define HAMPTONBAY4
 
 // Compile in Fanimation Slinger and HarberBreeze (303.870mhz approx)
 #define FANIMATION
@@ -30,6 +36,7 @@
 #define HAMPTONBAY_BASE_TOPIC "hamptonbay"
 #define HAMPTONBAY2_BASE_TOPIC "hamptonbay2"
 #define HAMPTONBAY3_BASE_TOPIC "hamptonbay3"
+#define HAMPTONBAY4_BASE_TOPIC "hamptonbay4"
 #define FANIMATION_BASE_TOPIC "fanimation"
 
 // Doorbell pins, define to use
