@@ -97,6 +97,7 @@ struct fan
   bool light2State;
   bool fanState;
   uint8_t fanSpeed;
+  uint8_t lightBrightness;
 };
 
 extern RCSwitch mySwitch;

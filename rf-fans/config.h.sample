@@ -23,6 +23,13 @@
 #define HAMPTONBAY
 #define HAMPTONBAY_TX_FREQ 303.631
 
+// HAMPTONBAY also has an extended mode that can use optional brightness and checksum data
+// This is used by atleast 7096T
+//#define HAMPTONBAY_PROTOCOL 13
+//#define HAMPTONBAY_TX_FREQ 303.9
+//#define HAMPTONBAY_CHECKSUM
+//#define HAMPTONBAY_BRIGHTNESS
+
 // Compile in Hampton Bay (dawnsun) A25-TX028 (304.015mhz approx)
 #define HAMPTONBAY2
 #define HAMPTONBAY2_TX_FREQ 303.015
@@ -36,10 +43,12 @@
 #define HAMPTONBAY4_TX_FREQ 304.875
 
 // Compile in Fanimation Slinger and HarberBreeze (303.870mhz approx)
+// also does Minka Aire, but first dip switch needs to be on and is ignored, 2-5 are used for the fan id
 #define FANIMATION
 #define FANIMATION_TX_FREQ 303.870
 
 // Use 6 speeds for fanimation Slinger
+// Minka Aire also uses 6 speeds, so enable this
 //#define FANIMATION6
 
 
