@@ -17,11 +17,56 @@
 #endif
 
 // RC-switch settings
-#define RF_PROTOCOL 6
+#ifndef HAMPTONBAY_PROTOCOL
+  #define RF_PROTOCOL 6
+#else
+  #define RF_PROTOCOL HAMPTONBAY_PROTOCOL
+#endif
 #define RF_REPEATS 8 
                                     
+#ifdef HAMPTONBAY_BRIGHTNESS
+  #define HAMPTONBAY_MASK 0x1c001f
+#else
+  #define HAMPTONBAY_MASK 0x1c3f1f
+#endif
+
 // Keep track of states for all dip settings
 static fan fans[16];
+
+static int calculateBrightness(int value, bool mode) {
+  // Brightness values are based on an inverted integer scale,
+  // where 50 = 1% and 1 = 100%. 0 is off. MQTT range is 1-255.
+  if (value == 0) {
+    return 0;
+  }
+  if (!mode) {
+    int invertedIndex = map(value, 1, 255, 50, 1); // Encode for transmit
+    // Return as 6-bit binary (00111111)
+    // Minimum safe brightness is 41 = 20%
+    return (invertedIndex > 41 ? 41 : invertedIndex) & 0x3F;
+  }
+  else {
+    return map(value, 50, 1, 1, 255); // Decode after receive
+  }
+}
+
+static int calculateChecksum(int number) {
+#ifdef HAMPTONBAY_CHECKSUM
+  // Checksum required on some models
+  // It is calculated by adding each of the 4-bit chunks that precede it
+  // (16-bits in all) and putting the remainder in these bits
+  int sum = 0;
+
+  while (number > 0) {
+    sum += number & 0xF;
+    number >>= 4;
+  }
+  return sum % 16;
+#else
+  return 0;
+#endif
+}
+
 
 static void postStateUpdate(int id) {
   sprintf(outTopic, "%s/%s/fan", STAT_BASE_TOPIC, idStrings[id]);
@@ -30,6 +75,15 @@ static void postStateUpdate(int id) {
   client.publish(outTopic, fanStateTable[fans[id].fanSpeed], true);
   sprintf(outTopic, "%s/%s/light", STAT_BASE_TOPIC, idStrings[id]);
   client.publish(outTopic, fans[id].lightState ? "ON":"OFF", true);
+
+#ifdef HAMPTONBAY_BRIGHTNESS
+  *outPercent='0\0';
+  if(fans[id].lightState) {
+    sprintf(outPercent,"%d",fans[id].lightBrightness);
+  }
+  sprintf(outTopic, "%s/%s/brightness", STAT_BASE_TOPIC, idStrings[id]);
+  client.publish(outTopic, outPercent, true);
+#endif
 
   sprintf(outTopic, "%s/%s/percent", STAT_BASE_TOPIC, idStrings[id]);
   *outPercent='\0';
@@ -60,11 +114,18 @@ static void transmitState(int fanId) {
 
   // Build out RF code
   //   Code follows the 21 bit pattern
-  //   000aaaa000000lff00000
+  //   000aaaabbbbbblffzzzzz
   //   Where a is the inversed/reversed dip setting, 
   //     l is light state, ff is fan speed
+  //     b can be light brightness, z can be checksum
   int fanRf = fans[fanId].fanState ? fans[fanId].fanSpeed : 0;
-  int rfCode = dipToRfIds[((~fanId)&0x0f)] << 14 | fans[fanId].lightState << 7 | fanRf << 5;
+#ifdef HAMPTONBAY_BRIGHTNESS
+  int lightRf = fans[fanId].lightState ? calculateBrightness(fans[fanId].lightBrightness, 0) : 0;
+#else
+  int lightRf = fans[fanId].lightState;
+#endif
+  int rfVal = dipToRfIds[((~fanId)&0x0f)] << 9 | llightRf << 2 | fanRf;
+  int rfCode = rfVal << 5 | calculateChecksum(rfVal);;
             
   mySwitch.send(rfCode, 21);      // send 21 bit code
   mySwitch.disableTransmit();   // set Transmit off
@@ -183,6 +244,14 @@ void hamptonbayMQTT(char* topic, char* payloadChar, unsigned int length) {
         } else {
           fans[idint].lightState = false;
         }
+      } else if(strcmp(attr,"brightness") ==0) {
+        int payloadInt = atoi(payloadChar);
+        fans[idint].lightBrightness = payloadInt;
+        if(payloadInt == 0) {
+          fans[idint].lightState = true;
+        } else {
+          fans[idint].lightState = false;
+        }
       }
       transmitState(idint);
     } else {
@@ -223,21 +292,34 @@ void hamptonbayMQTT(char* topic, char* payloadChar, unsigned int length) {
         } else {
           fans[idint].lightState = false;
         }
+      } else if(strcmp(attr,"brightness") ==0) {
+        int payloadInt = atoi(payloadChar);
+        fans[idint].lightBrightness = payloadInt;
+        if(payloadInt == 0) {
+          fans[idint].lightState = true;
+        } else {
+          fans[idint].lightState = false;
+        }
       }
     }
   }
 }
 
 void hamptonbayRF(int long value, int prot, int bits) {
-    if( prot == 6  && bits == 21 && ((value&0x1c3f1f)==0x000000)) {
+    if( (prot == 6  || prot == 11 || prot == HAMPTONBAY_PROTOCOL) && bits == 21 && ((value&HAMPTONBAY_MASK)==0x000000)) {
       int id = (~value >> 14)&0x0f;
       // Got a correct id in the correct protocol
       if(id < 16) {
         // reverse order of bits
         int dipId = dipToRfIds[id];
         // Blank out id in message to get light state
+#ifdef HAMPTONBAY_BRIGHTNESS
         int states = value & 0b11111111;
         fans[dipId].lightState = states >> 7;
+#else
+        int states = value & 0b11111111;
+        fans[dipId].lightState = states >> 7;
+#endif
         // Blank out light state to get fan state
         switch((states & 0b01111111) >> 5) {
           case 0:
@@ -270,6 +352,7 @@ void hamptonbaySetup() {
   // initialize fan struct 
   for(int i=0; i<16; i++) {
     fans[i].lightState = false;
+    fans[i].lightBrightness = 0;
     fans[i].fanState = false;  
     fans[i].fanSpeed = FAN_LOW;
   }

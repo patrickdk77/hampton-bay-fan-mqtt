@@ -16,6 +16,8 @@
 * Added doorbell support (I have mounted mine in the doorbell for good full house coverage of the rf)
 * Stabilize wifi better
 * Added txrcswitch to send raw codes
+* added hamptonbay checksum and brightness
+* add support for Minka Aire and 7096T
 
 ## Overview
 ESP8266 project enabling MQTT control for a Hampton Bay fan with a wireless receiver. Wireless communication is performed with a CC1101 wireless transceiver operating at 303 MHz.
@@ -89,6 +91,11 @@ light:
   payload_not_available: "Offline"
   state_topic: "stat/hamptonbay/1000/light"
   command_topic: "cmnd/hamptonbay/1000/light"
+  brightness_command_topic: "cmnd/hamptonbay/1000/brightness"
+  brightness_state_topic: "stat/hamptonbay/1000/brightness"
+  brightness_command_template: {{ value | int }}
+  brightness_value_template: {{ value | int }}
+  brightness_scale: 255
 ```
 
 For HarborBreeze
