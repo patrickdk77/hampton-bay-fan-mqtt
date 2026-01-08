@@ -255,6 +255,8 @@ void hamptonbay3MQTT(char* topic, char* payloadChar, unsigned int length) {
     
       attr = strtok(topic+sizeof(STAT_BASE_TOPIC)-1 + 5, "/");
 
+      if(attr == NULL) return;
+
       if(strcmp(attr,"fan") ==0) {
         if(strcmp(payloadChar,"on") == 0) {
           fans[idint].fanState = true;
