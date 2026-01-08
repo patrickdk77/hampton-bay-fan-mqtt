@@ -15,23 +15,39 @@
 #define STATUS_LED
 #define STATUS_LED_PIN 3
 
+// If you are not sure what to use, use FANIMATION first before attempting the others
+// unless your remote is listed
+
+
 // Compile in Hampton Bay FAN-9T (303.631mhz)
 #define HAMPTONBAY
+#define HAMPTONBAY_TX_FREQ 303.631
 
 // Compile in Hampton Bay (dawnsun) A25-TX028 (304.015mhz approx)
 #define HAMPTONBAY2
+#define HAMPTONBAY2_TX_FREQ 303.015
 
 // Compile in Hampton Bay (a few of them) UC-7078TR (303.95mhz approx)
 #define HAMPTONBAY3
+#define HAMPTONBAY3_TX_FREQ 304.95
 
 // Compile in Hampton Bay  UC-7078TR Variant (303.95mhz approx)
 #define HAMPTONBAY4
+#define HAMPTONBAY4_TX_FREQ 304.875
 
 // Compile in Fanimation Slinger and HarberBreeze (303.870mhz approx)
 #define FANIMATION
+#define FANIMATION_TX_FREQ 303.870
 
 // Use 6 speeds for fanimation Slinger
 //#define FANIMATION6
+
+
+// Middle ground if you have several fan types, transmitters are very wide branded and picks up all of them
+// If your only using one kind, you can just define it to that one
+#define RX_FREQ FANIMATION_TX_FREQ
+//#define RX_FREQ 303.870
+
 
 #define HAMPTONBAY_BASE_TOPIC "hamptonbay"
 #define HAMPTONBAY2_BASE_TOPIC "hamptonbay2"
